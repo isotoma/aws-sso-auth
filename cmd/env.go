@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -13,9 +14,13 @@ func init() {
 var envCmd = &cobra.Command{
 	Use: "env",
 	Run: func(cmd *cobra.Command, args []string) {
-		creds := getCacheFile()
-		fmt.Printf("export AWS_ACCESS_KEY_ID=%s\n", creds.Credentials.AccessKeyId)
-		fmt.Printf("export AWS_SECRET_ACCESS_KEY=%s\n", creds.Credentials.SecretAccessKey)
-		fmt.Printf("export AWS_SESSION_TOKEN=%s\n", creds.Credentials.SessionToken)
+		cache := getCacheFile()
+		creds, err := getCredentials(cache, "854689711824", "doug.winter")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("export AWS_ACCESS_KEY_ID=%s\n", creds.AccessKeyId)
+		fmt.Printf("export AWS_SECRET_ACCESS_KEY=%s\n", creds.SecretAccessKey)
+		fmt.Printf("export AWS_SESSION_TOKEN=%s\n", creds.SessionToken)
 	},
 }

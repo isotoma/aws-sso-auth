@@ -16,26 +16,27 @@ func init() {
 var saveCmd = &cobra.Command{
 	Use: "save",
 	Run: func(cmd *cobra.Command, args []string) {
-		creds := getCacheFile()
+		cache := getCacheFile()
+		creds, err := getCredentials(cache, "854689711824", "doug.winter")
+		if err != nil {
+			log.Fatal(err)
+		}
 		UpdateIni(creds)
 	},
 }
 
-func UpdateIni(creds CacheFile) {
+func UpdateIni(creds *Creds) {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
 	}
 	credspath := fmt.Sprintf("%s/.aws/credentials", homedir)
-	cfg, err := ini.Load(credspath)
-	if err != nil {
-		log.Fatal(err)
-	}
+	cfg := ini.Empty()
+	cfg.Append(credspath)
 	d := cfg.Section("default")
-	d.Key("aws_access_key_id").SetValue(creds.Credentials.AccessKeyId)
-	d.Key("aws_secret_access_key").SetValue(creds.Credentials.SecretAccessKey)
-	d.Key("aws_session_token").SetValue(creds.Credentials.SessionToken)
-	d.Key("aws_security_token").SetValue(creds.Credentials.SessionToken)
-	d.Key("aws_session_expiration").SetValue(creds.Credentials.Expiration)
+	d.Key("aws_access_key_id").SetValue(creds.AccessKeyId)
+	d.Key("aws_secret_access_key").SetValue(creds.SecretAccessKey)
+	d.Key("aws_session_token").SetValue(creds.SessionToken)
+	d.Key("aws_security_token").SetValue(creds.SessionToken)
 	cfg.SaveTo(credspath)
 }
