@@ -15,7 +15,7 @@ var envCmd = &cobra.Command{
 	Use: "env",
 	Run: func(cmd *cobra.Command, args []string) {
 		cache := getCacheFile()
-		creds, err := getCredentials(cache, "854689711824", "doug.winter")
+		creds, err := getCredentials(cache)
 		if err != nil {
 			log.Fatal(err)
 		}

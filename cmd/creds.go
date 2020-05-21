@@ -12,7 +12,8 @@ type Creds struct {
 	SessionToken string `json:sessionToken`
 }
 
-func getCredentials(cache CacheFile, accountId string, roleName string) (*Creds, error) {
+func getCredentials(cache CacheFile) (*Creds, error) {
+	accountId, roleName := getSSODetails()
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(cache.Region),
 	})
