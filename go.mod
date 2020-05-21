@@ -1,4 +1,4 @@
-module github.com/winjer/awssso2env
+module github.com/winjer/aws-sso-auth
 
 go 1.14
 

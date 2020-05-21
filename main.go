@@ -1,7 +1,9 @@
 package main
+
 import (
-	"github.com/winjer/awssso2env/cmd"
+	"github.com/winjer/aws-sso-auth/cmd"
 )
+
 func main() {
 	cmd.Execute()
 }
