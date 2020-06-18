@@ -162,7 +162,13 @@ const findSSOConfigFromAWSConfig = async (): Promise<SSOConfigOptions> => {
 };
 
 const parseRoleCredentialsOutput = (stdout: string): Credentials => {
-    const parsed: unknown = JSON.parse(stdout);
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(stdout);
+    } catch {
+        throw new UnexpectedGetRoleCredentialsOutputError('Unable to parse output from command');
+    }
+
     if (typeof parsed !== 'object') {
         throw new UnexpectedGetRoleCredentialsOutputError('Unable to parse output from command');
     }
@@ -232,13 +238,14 @@ const writeCredentialsFile = async (roleCredentials: Credentials): Promise<void>
 
 export const run = async (): Promise<void> => {
     let latestCacheFile = await findLatestCacheFile();
+
     if (typeof latestCacheFile === 'undefined' || latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
         await execPromise('aws sso login');
         latestCacheFile = await findLatestCacheFile();
     }
 
     if (typeof latestCacheFile === 'undefined') {
-        throw new NoCachedCredentialsError('Unable to retrieve credentials');
+        throw new NoCachedCredentialsError('Unable to retrieve credentials from SSO cache');
     }
 
     const ssoConfig = await findSSOConfigFromAWSConfig();
