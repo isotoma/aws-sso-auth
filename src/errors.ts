@@ -11,3 +11,15 @@ export class ApplicationError extends Error {
 export class ArgumentsError extends ApplicationError {
     readonly prefix = 'ArgumentsError';
 }
+
+export class MissingSSOConfigError extends ApplicationError {
+    readonly prefix = 'MissingSSOConfigError';
+}
+
+export class NoCachedCredentialsError extends ApplicationError {
+    readonly prefix = 'NoCachedCredentialsError';
+}
+
+export class UnexpectedGetRoleCredentialsOutputError extends ApplicationError {
+    readonly prefix = 'UnexpectedGetRoleCredentialsOutputError';
+}
