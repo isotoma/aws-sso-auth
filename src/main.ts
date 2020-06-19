@@ -3,7 +3,8 @@ import { exec } from 'child_process';
 
 import yargs from 'yargs';
 
-import { ArgumentsError, NoCachedCredentialsError } from './errors';
+import { ArgumentsError, NoCachedCredentialsError, BadAWSCLIVersionError } from './errors';
+import { checkCLIVersion } from './checkCLIVersion';
 import { findLatestCacheFile } from './cache';
 import { findSSOConfigFromAWSConfig } from './ssoConfig';
 import { parseRoleCredentialsOutput, writeCredentialsFile } from './roleCredentials';
@@ -11,6 +12,10 @@ import { parseRoleCredentialsOutput, writeCredentialsFile } from './roleCredenti
 const execPromise = util.promisify(exec);
 
 export const run = async (): Promise<void> => {
+    if (!(await checkCLIVersion())) {
+        throw new BadAWSCLIVersionError('Need CLI version 2, see https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html, run `aws --version` to inspect version');
+    }
+
     let latestCacheFile = await findLatestCacheFile();
 
     if (typeof latestCacheFile === 'undefined' || latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
