@@ -5,6 +5,7 @@ import yargs from 'yargs';
 
 import { ArgumentsError, NoCachedCredentialsError, BadAWSCLIVersionError } from './errors';
 import { checkCLIVersion } from './checkCLIVersion';
+import { getVersionNumber } from './getVersion';
 import { findLatestCacheFile } from './cache';
 import { findSSOConfigFromAWSConfig } from './ssoConfig';
 import { parseRoleCredentialsOutput, writeCredentialsFile, writeCredentialsCacheFile, readCredentialsCacheFile, printCredentials } from './roleCredentials';
@@ -85,11 +86,15 @@ export const main = async (args: Array<string>): Promise<void> => {
     if (positionalArgs.length > 2) {
         throw new ArgumentsError('Too many positional arguments');
     }
-
-    const commands = ['credentials-process'];
+    const commands = ['credentials-process', 'version'];
 
     if (positionalArgs.length > 0 && !commands.includes(positionalArgs[0])) {
-        throw new ArgumentsError('Unexpected argument');
+        throw new ArgumentsError(`Unexpected argument, expected one of ${commands.join(',')}`);
+    }
+
+    if (positionalArgs[0] === 'version') {
+        console.log(await getVersionNumber());
+        return;
     }
 
     await run({
