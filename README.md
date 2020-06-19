@@ -41,3 +41,11 @@ and run the tests with:
 ```
 npm run test
 ```
+
+You can build standalone executables with:
+
+```
+npm run package
+```
+
+and executables are produced in `./dist/`.
