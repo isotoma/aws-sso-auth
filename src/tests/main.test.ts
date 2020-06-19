@@ -52,6 +52,11 @@ describe('run', () => {
                     stdout: JSON.stringify(content),
                     stderr: '',
                 });
+            } else if (cmd.startsWith('aws --version')) {
+                callback(null, {
+                    stdout: 'aws-cli/2.0.21 Python/3.7.3 Linux/5.7.2-arch1-1 botocore/2.0.0dev25',
+                    stderr: '',
+                });
             } else {
                 callback(new Error('Unknown command'), {
                     stdout: '',

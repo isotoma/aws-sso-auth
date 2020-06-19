@@ -23,3 +23,7 @@ export class NoCachedCredentialsError extends ApplicationError {
 export class UnexpectedGetRoleCredentialsOutputError extends ApplicationError {
     readonly prefix = 'UnexpectedGetRoleCredentialsOutputError';
 }
+
+export class BadAWSCLIVersionError extends ApplicationError {
+    readonly prefix = 'BadAWSCLIVersionError';
+}
