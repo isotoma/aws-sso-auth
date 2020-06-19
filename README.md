@@ -23,3 +23,21 @@ aws-sso-auth
 ```
 
 This checks for temporary credentials in `~/.aws/sso/cache/`, then **overwrites** `~/.aws/credentials` with temporary credentials retrieved using `aws sso get-role-credentials`.
+
+## Development
+
+```
+npm install
+```
+
+Change code, then, to compile and run:
+
+```
+npm run build && node build/bin.js
+```
+
+and run the tests with:
+
+```
+npm run test
+```
