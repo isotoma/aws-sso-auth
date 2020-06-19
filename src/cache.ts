@@ -87,8 +87,16 @@ const latestCacheFile = async (cacheDirPath: string, filenames: Array<string>): 
     return await reducePromises(reducer, filenames, undefined);
 };
 
+const listCacheFiles = async (cacheDirPath: string): Promise<Array<string>> => {
+    try {
+        return await fsPromises.readdir(cacheDirPath);
+    } catch (err) {
+        return [];
+    }
+};
+
 export const findLatestCacheFile = async (): Promise<SSOCacheToken | undefined> => {
     const cacheDirPath = path.join(os.homedir(), '.aws/sso/cache/');
-    const filenames = await fsPromises.readdir(cacheDirPath);
+    const filenames = await listCacheFiles(cacheDirPath);
     return await latestCacheFile(cacheDirPath, filenames);
 };
