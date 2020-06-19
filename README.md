@@ -34,6 +34,13 @@ credential_process = /full/path/to/aws-sso-auth-executable credentials-process
 
 This way, whenever anything needs AWS credentials, it will call that command. This caches credentials in `~/.aws-sso-auth-credentials.json`, rather than touching anything in `~/.aws`.
 
+## Finding version of an executable
+
+Inspect the version of an executable with:
+```
+aws-sso-auth version
+```
+
 ## Development
 
 ```
