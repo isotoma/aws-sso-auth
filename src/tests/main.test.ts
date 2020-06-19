@@ -46,6 +46,7 @@ describe('run', () => {
                         accessKeyId: 'myaccesskeyid',
                         secretAccessKey: 'mysecretaccesskey',
                         sessionToken: 'mysessiontoken',
+                        expiration: new Date().getTime() + 60 * 1000,
                     },
                 };
                 callback(null, {
@@ -65,7 +66,10 @@ describe('run', () => {
             }
         });
 
-        await run();
+        await run({
+            verbose: false,
+            credentialsProcessOutput: false,
+        });
 
         const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
 

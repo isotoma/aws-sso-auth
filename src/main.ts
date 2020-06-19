@@ -7,13 +7,26 @@ import { ArgumentsError, NoCachedCredentialsError, BadAWSCLIVersionError } from 
 import { checkCLIVersion } from './checkCLIVersion';
 import { findLatestCacheFile } from './cache';
 import { findSSOConfigFromAWSConfig } from './ssoConfig';
-import { parseRoleCredentialsOutput, writeCredentialsFile } from './roleCredentials';
+import { parseRoleCredentialsOutput, writeCredentialsFile, writeCredentialsCacheFile, readCredentialsCacheFile, printCredentials } from './roleCredentials';
 
 const execPromise = util.promisify(exec);
 
-export const run = async (): Promise<void> => {
+interface RunProps {
+    verbose: boolean;
+    credentialsProcessOutput: boolean;
+}
+
+export const run = async (props: RunProps): Promise<void> => {
     if (!(await checkCLIVersion())) {
         throw new BadAWSCLIVersionError('Need CLI version 2, see https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html, run `aws --version` to inspect version');
+    }
+
+    if (props.credentialsProcessOutput) {
+        const creds = await readCredentialsCacheFile();
+        if (typeof creds !== 'undefined') {
+            printCredentials(creds);
+            return;
+        }
     }
 
     let latestCacheFile = await findLatestCacheFile();
@@ -45,7 +58,12 @@ export const run = async (): Promise<void> => {
     );
 
     const roleCredentials = parseRoleCredentialsOutput(getRoleCredentialsCmdOutput.stdout);
-    await writeCredentialsFile(roleCredentials);
+    if (props.credentialsProcessOutput) {
+        await writeCredentialsCacheFile(roleCredentials);
+        printCredentials(roleCredentials);
+    } else {
+        await writeCredentialsFile(roleCredentials);
+    }
 };
 
 export const main = async (args: Array<string>): Promise<void> => {
@@ -64,8 +82,18 @@ export const main = async (args: Array<string>): Promise<void> => {
 
     const positionalArgs: Array<string> = parsedArgs._;
 
-    if (positionalArgs.length > 1) {
+    if (positionalArgs.length > 2) {
         throw new ArgumentsError('Too many positional arguments');
     }
-    await run();
+
+    const commands = ['credentials-process'];
+
+    if (positionalArgs.length > 0 && !commands.includes(positionalArgs[0])) {
+        throw new ArgumentsError('Unexpected argument');
+    }
+
+    await run({
+        verbose: parsedArgs.verbose || false,
+        credentialsProcessOutput: positionalArgs[0] === 'credentials-process',
+    });
 };
