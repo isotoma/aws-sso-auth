@@ -114,7 +114,7 @@ export const main = async (args: Array<string>): Promise<void> => {
             /* istanbul ignore next */
             if (err) throw err;
             console.error(yargs.help());
-            throw new Error(msg);
+            throw new ArgumentsError(msg);
         })
         .parse(args);
 
