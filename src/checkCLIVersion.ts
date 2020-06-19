@@ -6,7 +6,7 @@ const execPromise = util.promisify(exec);
 export const checkCLIVersion = async (): Promise<boolean> => {
     let versionCmdOutput: { stdout: string };
     try {
-        versionCmdOutput = await execPromise('aws --version', process.env);
+        versionCmdOutput = await execPromise('aws --version', { env: process.env });
     } catch {
         return false;
     }
