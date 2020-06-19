@@ -113,7 +113,6 @@ export const main = async (args: Array<string>): Promise<void> => {
         .fail((msg: string, err: Error | null, yargs: yargs.Argv): void => {
             /* istanbul ignore next */
             if (err) throw err;
-            console.error(yargs.help());
             throw new ArgumentsError(msg);
         })
         .parse(args);
