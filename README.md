@@ -14,27 +14,38 @@ https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
 
 ## Usage
 
-You will need to have a current SSO session with the AWS CLI. Before using the AWS CLI for SSO you need to configure it with `aws sso configure`. Then you can:
+You will need to have a current SSO session with the AWS CLI. Before using the AWS CLI for SSO you need to configure it with `aws sso configure`. Note that `aws-sso-auth` currently expects you to be using a profile called `default` for your sso login.
 
-    aws sso login
+Run:
 
-This stores a cached token in `~/.aws/sso/cache` which is used by `aws-sso-auth`
+```
+aws-sso-auth
+```
 
-Note that `aws-sso-auth` currently expects you to be using a profile called `default` for your sso login.
+This checks for temporary credentials in `~/.aws/sso/cache/`, then **overwrites** `~/.aws/credentials` with temporary credentials retrieved using `aws sso get-role-credentials`.
 
-## Commands
+## Development
 
-### env
+```
+npm install
+```
 
-    aws-sso-auth env
+Change code, then, to compile and run:
 
-This logs in using the cached token and prints the correct environment to stdout. You can use this with:
+```
+npm run build && node build/bin.js
+```
 
-    source <(aws-sso-auth env)
+and run the tests with:
 
-### save
+```
+npm run test
+```
 
-    aws-sso-auth save
+You can build standalone executables with:
 
-This saves the credentials in `~/.aws/credentials` so they are available to all sessions.
+```
+npm run package
+```
 
+and executables are produced in `./dist/`.

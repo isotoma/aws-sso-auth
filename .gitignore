@@ -1,1 +1,13 @@
-aws-sso-auth
+*.js
+*.d.ts
+
+build/
+dist/
+
+node_modules
+
+!.eslintrc.js
+!.prettierrc.js
+
+!jest.config.js
+coverage/
