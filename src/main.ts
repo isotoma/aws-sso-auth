@@ -14,7 +14,12 @@ export const run = async (): Promise<void> => {
     let latestCacheFile = await findLatestCacheFile();
 
     if (typeof latestCacheFile === 'undefined' || latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
-        await execPromise('aws sso login');
+        await execPromise('aws sso login', {
+            env: {
+                ...process.env,
+                AWS_PROFILE: 'default',
+            },
+        });
         latestCacheFile = await findLatestCacheFile();
     }
 
@@ -26,6 +31,12 @@ export const run = async (): Promise<void> => {
 
     const getRoleCredentialsCmdOutput = await execPromise(
         `aws sso get-role-credentials --role-name "${ssoConfig.roleName}" --account-id "${ssoConfig.accountId}" --access-token "${latestCacheFile.accessToken}" --region "${latestCacheFile.region}"`,
+        {
+            env: {
+                ...process.env,
+                AWS_PROFILE: 'default',
+            },
+        },
     );
 
     const roleCredentials = parseRoleCredentialsOutput(getRoleCredentialsCmdOutput.stdout);
