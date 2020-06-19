@@ -1,6 +1,19 @@
 ### Changelog
 
-### [v2.0.0](https://github.com/isotoma/aws-sso-auth/compare/v1.0.0...v2.0.0)
+#### [v2.1.0](https://github.com/isotoma/aws-sso-auth/compare/2.0.0...v2.1.0)
+
+> 19 June 2020
+
+- Verbose flag (#7) [`#11`](https://github.com/isotoma/aws-sso-auth/pull/11)
+- Version command (#6) [`#10`](https://github.com/isotoma/aws-sso-auth/pull/10)
+- Command to make use of credentials_process (#3) [`#9`](https://github.com/isotoma/aws-sso-auth/pull/9)
+- Fix check for AWS CLI version (#2) [`#8`](https://github.com/isotoma/aws-sso-auth/pull/8)
+- Check for AWS CLI version (#2) [`#4`](https://github.com/isotoma/aws-sso-auth/pull/4)
+- Test coverage (#5) [`d762590`](https://github.com/isotoma/aws-sso-auth/commit/d762590a4171717ec2a9a3606e56b3e1ae745cef)
+- Fix for invalid date when parsing role credentials [`ebc917c`](https://github.com/isotoma/aws-sso-auth/commit/ebc917c9c8a6485d93d385b0aabd7b5da865f2f3)
+- Fix error thrown for bad command line options [`22c28b7`](https://github.com/isotoma/aws-sso-auth/commit/22c28b75dd29d915de984bcb01beb924412287de)
+
+### [2.0.0](https://github.com/isotoma/aws-sso-auth/compare/v1.0.0...2.0.0)
 
 > 19 June 2020
 
