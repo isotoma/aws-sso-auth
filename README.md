@@ -24,6 +24,16 @@ aws-sso-auth
 
 This checks for temporary credentials in `~/.aws/sso/cache/`, then **overwrites** `~/.aws/credentials` with temporary credentials retrieved using `aws sso get-role-credentials`.
 
+## Usage with `credentials_process`
+
+Rather than overwriting `~/.aws/credentials`, provided the SDK/program you need to read AWS credentials can make use of the `credentials_process` option (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html), you can instead put the following in your `[default]` in `~/.aws/config`:
+
+```
+credential_process = /full/path/to/aws-sso-auth-executable credentials-process
+```
+
+This way, whenever anything needs AWS credentials, it will call that command. This caches credentials in `~/.aws-sso-auth-credentials.json`, rather than touching anything in `~/.aws`.
+
 ## Development
 
 ```
