@@ -155,11 +155,17 @@ export const readCredentialsCacheFile = async (): Promise<Credentials | undefine
         return undefined;
     }
 
+    const expirationDate = new Date(Date.parse(expirationIsoString));
+
+    if (isNaN(expirationDate.getTime())) {
+        return undefined;
+    }
+
     const creds = {
         accessKeyId,
         secretAccessKey,
         sessionToken,
-        expiration: new Date(Date.parse(expirationIsoString)),
+        expiration: expirationDate,
     };
 
     if (creds.expiration.getTime() < new Date().getTime()) {
