@@ -28,7 +28,7 @@ describe('run', () => {
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
         const execMock = (exec as unknown) as jest.Mock<void>;
-        execMock.mockImplementation((cmd: string, callback: (err: Error | null, out: { stdout: string; stderr: string }) => void) => {
+        execMock.mockImplementation((cmd: string, options: object, callback: (err: Error | null, out: { stdout: string; stderr: string }) => void) => {
             if (cmd.startsWith('aws sso login')) {
                 const content = {
                     expiresAt: new Date(new Date().getTime() + 60 * 1000),
