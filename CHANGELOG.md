@@ -1,6 +1,12 @@
 ### Changelog
 
-#### [v2.1.0](https://github.com/isotoma/aws-sso-auth/compare/2.0.0...v2.1.0)
+#### [v2.1.1](https://github.com/isotoma/aws-sso-auth/compare/2.1.0...v2.1.1)
+
+> 20 June 2020
+
+- Fix version command when run in executable [`#15`](https://github.com/isotoma/aws-sso-auth/pull/15)
+
+#### [2.1.0](https://github.com/isotoma/aws-sso-auth/compare/2.0.0...2.1.0)
 
 > 19 June 2020
 
