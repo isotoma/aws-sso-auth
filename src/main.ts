@@ -129,7 +129,7 @@ export const main = async (args: Array<string>): Promise<void> => {
     }
 
     if (positionalArgs[0] === 'version') {
-        console.log(await getVersionNumber());
+        console.log(getVersionNumber());
         return;
     }
 
