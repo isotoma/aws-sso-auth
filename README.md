@@ -12,6 +12,30 @@ The Linux installation guide is here:
 
 https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
 
+## Installation
+
+Oneline:
+```
+$ bash <(curl "https://raw.githubusercontent.com/isotoma/aws-sso-auth/master/install.sh")
+
+```
+
+Or, if you don't like running scripts from the internet:
+- download an executable from https://github.com/isotoma/aws-sso-auth/releases
+- make it executable with `chmod a+x`
+- put it somewhere that is on your `$PATH`
+
+Or, if you don't trust those executables:
+- Checkout this repository
+- Run `npm run package`
+- Take one of the executables from `./dist/`
+- put it somewhere that is on your `$PATH`
+
+Or, if you don't trust executables made by pkg:
+- Checkout this repository
+- Run `npm run build`
+- Alias `node /path/to/repo/build/bin.js` to `aws-sso-auth`
+
 ## Usage
 
 You will need to have a current SSO session with the AWS CLI. Before using the AWS CLI for SSO you need to configure it with `aws sso configure`. Note that `aws-sso-auth` currently expects you to be using a profile called `default` for your sso login.
