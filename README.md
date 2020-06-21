@@ -17,7 +17,6 @@ https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
 Oneline:
 ```
 $ bash <(curl "https://raw.githubusercontent.com/isotoma/aws-sso-auth/master/install.sh")
-
 ```
 
 Or, if you don't like running scripts from the internet:
