@@ -42,7 +42,7 @@ function main() {
     info "  Downloaded from: $download_url"
     info "  MD5 checksum: $(md5sum $tmp_download_path || echo unknown)"
 
-    read -p "Are you sure? " -r
+    read -p "Are you sure (y/N)? " -r
     if [[ ! $REPLY =~ ^(Y|y|yes)$ ]]
     then
         rm -rf "$tmp_dir"
