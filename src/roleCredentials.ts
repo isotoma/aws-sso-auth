@@ -86,9 +86,9 @@ export const parseRoleCredentialsOutput = (stdout: string): Credentials => {
     };
 };
 
-export const writeCredentialsFile = async (roleCredentials: Credentials): Promise<void> => {
+export const writeCredentialsFile = async (roleCredentials: Credentials, profile: string | undefined): Promise<void> => {
     const credentialsLines = [
-        '[default]',
+        profile ? `[profile ${profile}]` : '[default]',
         `aws_access_key_id = ${roleCredentials.accessKeyId}`,
         `aws_secret_access_key = ${roleCredentials.secretAccessKey}`,
         `aws_session_token = ${roleCredentials.sessionToken}`,
