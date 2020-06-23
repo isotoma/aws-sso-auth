@@ -1,8 +1,16 @@
 ### Changelog
 
-#### [v2.2.0](https://github.com/isotoma/aws-sso-auth/compare/2.1.1...v2.2.0)
+#### [v2.2.1](https://github.com/isotoma/aws-sso-auth/compare/2.2.0...v2.2.1)
 
 > 23 June 2020
+
+- Update docs for addition of --profile flag [`56c39eb`](https://github.com/isotoma/aws-sso-auth/commit/56c39ebb6911b6e4abe780d7e9074399ac65e3af)
+- Update docs to be more helpful for setting credential_process [`38e1f1d`](https://github.com/isotoma/aws-sso-auth/commit/38e1f1df6de2248d8709b56ac5fa5e5602d8be44)
+- Make install confirmation prompt clearer [`c4fa01a`](https://github.com/isotoma/aws-sso-auth/commit/c4fa01a52d760b5f4f3af2c564e89ad9d8ff7f6b)
+
+#### [2.2.0](https://github.com/isotoma/aws-sso-auth/compare/2.1.1...2.2.0)
+
+> 24 June 2020
 
 - Configurable profile name (#20) [`#21`](https://github.com/isotoma/aws-sso-auth/pull/21)
 - Owner-only access permissions on created files (#14) [`#19`](https://github.com/isotoma/aws-sso-auth/pull/19)
