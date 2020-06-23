@@ -37,7 +37,7 @@ Or, if you don't trust executables made by pkg:
 
 ## Usage
 
-You will need to have a current SSO session with the AWS CLI. Before using the AWS CLI for SSO you need to configure it with `aws sso configure`. Note that `aws-sso-auth` currently expects you to be using a profile called `default` for your sso login.
+You will need to have a current SSO session with the AWS CLI. Before using the AWS CLI for SSO you need to configure it with `aws sso configure`. By default, `aws-sso-auth` the profile called `default` for your sso login. Change this with the `--profile` flag if needed.
 
 Run:
 
@@ -49,7 +49,7 @@ This checks for temporary credentials in `~/.aws/sso/cache/`, then **overwrites*
 
 ## Usage with `credentials_process`
 
-Rather than overwriting `~/.aws/credentials`, provided the SDK/program you need to read AWS credentials can make use of the `credentials_process` option (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html), you can instead put the following in your `[default]` in `~/.aws/config`:
+Rather than overwriting `~/.aws/credentials`, provided the SDK/program you need to read AWS credentials can make use of the `credentials_process` option (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html), you can instead put the following in a profile that also has the `sso_...` configuration in `~/.aws/config`:
 
 ```
 credential_process = /full/path/to/aws-sso-auth-executable credentials-process
