@@ -52,7 +52,7 @@ This checks for temporary credentials in `~/.aws/sso/cache/`, then **overwrites*
 Rather than overwriting `~/.aws/credentials`, provided the SDK/program you need to read AWS credentials can make use of the `credentials_process` option (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sourcing-external.html), you can instead put the following in a profile that also has the `sso_...` configuration in `~/.aws/config`:
 
 ```
-credential_process = /usr/local/bin/aws-sso-auth-executable credentials-process
+credential_process = /usr/local/bin/aws-sso-auth credentials-process
 ```
 (or a different path, if you've installed elsewhere - note it needs to be an absolute path)
 
