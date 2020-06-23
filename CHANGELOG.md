@@ -1,14 +1,23 @@
 ### Changelog
 
-#### [v2.1.1](https://github.com/isotoma/aws-sso-auth/compare/2.1.0...v2.1.1)
+#### [v2.2.0](https://github.com/isotoma/aws-sso-auth/compare/2.1.1...v2.2.0)
 
-> 20 June 2020
+> 23 June 2020
+
+- Configurable profile name (#20) [`#21`](https://github.com/isotoma/aws-sso-auth/pull/21)
+- Owner-only access permissions on created files (#14) [`#19`](https://github.com/isotoma/aws-sso-auth/pull/19)
+- Readme empty line fix [`#18`](https://github.com/isotoma/aws-sso-auth/pull/18)
+- Install script (#13) [`#17`](https://github.com/isotoma/aws-sso-auth/pull/17)
+
+#### [2.1.1](https://github.com/isotoma/aws-sso-auth/compare/2.1.0...2.1.1)
+
+> 21 June 2020
 
 - Fix version command when run in executable [`#15`](https://github.com/isotoma/aws-sso-auth/pull/15)
 
 #### [2.1.0](https://github.com/isotoma/aws-sso-auth/compare/2.0.0...2.1.0)
 
-> 19 June 2020
+> 20 June 2020
 
 - Verbose flag (#7) [`#11`](https://github.com/isotoma/aws-sso-auth/pull/11)
 - Version command (#6) [`#10`](https://github.com/isotoma/aws-sso-auth/pull/10)
