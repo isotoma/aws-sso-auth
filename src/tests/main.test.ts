@@ -109,7 +109,8 @@ describe('run', () => {
             credentialsProcessOutput: false,
         });
 
-        const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
+        const expectedPath = path.join(os.homedir(), '.aws/credentials');
+        const foundCredentialsContent = fs.readFileSync(expectedPath, 'utf8');
 
         const expectedLines = [
             '[default]',
@@ -120,6 +121,9 @@ describe('run', () => {
             '',
         ];
         expect(foundCredentialsContent).toEqual(expectedLines.join('\n'));
+
+        const fileModeOctal = '0' + (fs.lstatSync(expectedPath).mode & parseInt('777', 8)).toString(8);
+        expect(fileModeOctal).toEqual('0600');
     });
 
     test('run, finds cache file', async () => {

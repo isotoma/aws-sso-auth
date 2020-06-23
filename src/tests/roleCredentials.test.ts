@@ -400,6 +400,9 @@ describe('writeCredentialsCacheFile', () => {
             '}',
         ].join('');
 
-        expect(fs.readFileSync(path.join(os.homedir(), '.aws-sso-auth-credentials.json'), 'utf8')).toEqual(expected);
+        const expectedPath = path.join(os.homedir(), '.aws-sso-auth-credentials.json');
+        expect(fs.readFileSync(expectedPath, 'utf8')).toEqual(expected);
+        const fileModeOctal = '0' + (fs.lstatSync(expectedPath).mode & parseInt('777', 8)).toString(8);
+        expect(fileModeOctal).toEqual('0600');
     });
 });
