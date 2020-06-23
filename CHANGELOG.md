@@ -1,8 +1,14 @@
 ### Changelog
 
-#### [v2.2.1](https://github.com/isotoma/aws-sso-auth/compare/2.2.0...v2.2.1)
+#### [v2.2.2](https://github.com/isotoma/aws-sso-auth/compare/2.2.1...v2.2.2)
 
 > 23 June 2020
+
+- Fix docs for credential_process [`882df93`](https://github.com/isotoma/aws-sso-auth/commit/882df93fa13b49cbf929e24b751ffb0fac06cde7)
+
+#### [2.2.1](https://github.com/isotoma/aws-sso-auth/compare/2.2.0...2.2.1)
+
+> 24 June 2020
 
 - Update docs for addition of --profile flag [`56c39eb`](https://github.com/isotoma/aws-sso-auth/commit/56c39ebb6911b6e4abe780d7e9074399ac65e3af)
 - Update docs to be more helpful for setting credential_process [`38e1f1d`](https://github.com/isotoma/aws-sso-auth/commit/38e1f1df6de2248d8709b56ac5fa5e5602d8be44)
