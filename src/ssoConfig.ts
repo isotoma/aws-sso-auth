@@ -14,10 +14,10 @@ interface SSOConfigOptions {
     readonly accountId: string;
 }
 
-export const findSSOConfigFromAWSConfig = async (): Promise<SSOConfigOptions> => {
+export const findSSOConfigFromAWSConfig = async (profile: string | undefined): Promise<SSOConfigOptions> => {
     const filepath = path.join(os.homedir(), '.aws/config');
     const awsConfig = ini.parse(await fsPromises.readFile(filepath, 'utf8'));
-    const sectionName = 'default';
+    const sectionName = profile ? `profile ${profile}` : 'default';
 
     if (!hasKey(sectionName, awsConfig)) {
         throw new MissingSSOConfigError(`No [${sectionName}] section in ${filepath}`);

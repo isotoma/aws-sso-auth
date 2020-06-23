@@ -106,6 +106,7 @@ describe('run', () => {
 
         await run({
             verbose: false,
+            profile: undefined,
             credentialsProcessOutput: false,
         });
 
@@ -134,6 +135,7 @@ describe('run', () => {
 
         await run({
             verbose: false,
+            profile: undefined,
             credentialsProcessOutput: false,
         });
 
@@ -162,6 +164,7 @@ describe('run', () => {
 
         await run({
             verbose: false,
+            profile: undefined,
             credentialsProcessOutput: false,
         });
 
@@ -196,6 +199,7 @@ describe('run', () => {
         await expect(
             run({
                 verbose: false,
+                profile: undefined,
                 credentialsProcessOutput: false,
             }),
         ).rejects.toThrow(NoCachedCredentialsError);
@@ -212,6 +216,7 @@ describe('run', () => {
 
         await run({
             verbose: false,
+            profile: undefined,
             credentialsProcessOutput: true,
         });
 
@@ -241,6 +246,7 @@ describe('run', () => {
 
         await run({
             verbose: false,
+            profile: undefined,
             credentialsProcessOutput: true,
         });
 
@@ -262,10 +268,40 @@ describe('run', () => {
 
         await run({
             verbose: true,
+            profile: undefined,
             credentialsProcessOutput: false,
         });
 
         expect(consoleErrorSpy).toHaveBeenCalledWith('INFO:', 'Starting');
+    });
+
+    test('run, custom profile', async () => {
+        const configLines = ['[profile myprofile]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "3020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        await run({
+            verbose: false,
+            profile: 'myprofile',
+            credentialsProcessOutput: false,
+        });
+
+        const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
+
+        const expectedLines = [
+            '[profile myprofile]',
+            'aws_access_key_id = myaccesskeyid',
+            'aws_secret_access_key = mysecretaccesskey',
+            'aws_session_token = mysessiontoken',
+            'aws_security_token = mysessiontoken',
+            '',
+        ];
+        expect(foundCredentialsContent).toEqual(expectedLines.join('\n'));
     });
 
     test('run, bad AWS CLI version', async () => {
@@ -289,6 +325,7 @@ describe('run', () => {
         await expect(
             run({
                 verbose: false,
+                profile: undefined,
                 credentialsProcessOutput: false,
             }),
         ).rejects.toThrow(BadAWSCLIVersionError);

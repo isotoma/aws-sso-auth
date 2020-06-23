@@ -14,6 +14,7 @@ const execPromise = util.promisify(exec);
 
 interface RunProps {
     verbose: boolean;
+    profile: string | undefined;
     credentialsProcessOutput: boolean;
 }
 
@@ -57,7 +58,7 @@ export const run = async (props: RunProps): Promise<void> => {
         await execPromise('aws sso login', {
             env: {
                 ...process.env,
-                AWS_PROFILE: 'default',
+                AWS_PROFILE: props.profile || 'default',
             },
         });
         log('Login completed, trying again to retrieve credentials from SSO cache');
@@ -69,7 +70,7 @@ export const run = async (props: RunProps): Promise<void> => {
     }
 
     log('Retrieving SSO configuration from AWS config file...');
-    const ssoConfig = await findSSOConfigFromAWSConfig();
+    const ssoConfig = await findSSOConfigFromAWSConfig(props.profile);
     log('Got SSO configuration');
 
     log('Using SSO credentials to get role credentials...');
@@ -78,7 +79,7 @@ export const run = async (props: RunProps): Promise<void> => {
         {
             env: {
                 ...process.env,
-                AWS_PROFILE: 'default',
+                AWS_PROFILE: props.profile || 'default',
             },
         },
     );
@@ -97,7 +98,7 @@ export const run = async (props: RunProps): Promise<void> => {
         log('Printed role credentials');
     } else {
         log('Writing role credentials to AWS credentials file...');
-        await writeCredentialsFile(roleCredentials);
+        await writeCredentialsFile(roleCredentials, props.profile);
         log('Wrote role credentials');
     }
 
@@ -108,6 +109,8 @@ export const main = async (args: Array<string>): Promise<void> => {
     const parsedArgs = yargs
         .boolean('verbose')
         .describe('verbose', 'Be verbose')
+        .string('profile')
+        .describe('profile', 'Specify an AWS profile (in ~/.aws/config) to use instead of the default profile')
         .usage('Usage: $0 [...options]')
         .strict()
         .fail((msg: string, err: Error | null, yargs: yargs.Argv): void => {
@@ -135,6 +138,7 @@ export const main = async (args: Array<string>): Promise<void> => {
 
     await run({
         verbose: parsedArgs.verbose || false,
+        profile: parsedArgs.profile || undefined,
         credentialsProcessOutput: positionalArgs[0] === 'credentials-process',
     });
 };
