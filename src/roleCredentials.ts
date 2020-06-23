@@ -97,7 +97,10 @@ export const writeCredentialsFile = async (roleCredentials: Credentials): Promis
     ];
 
     const credentialsPath = path.join(os.homedir(), '.aws/credentials');
-    await fsPromises.writeFile(credentialsPath, credentialsLines.join('\n'), 'utf8');
+    await fsPromises.writeFile(credentialsPath, credentialsLines.join('\n'), {
+        encoding: 'utf8',
+        mode: 0o600,
+    });
 };
 
 export const readCredentialsCacheFile = async (): Promise<Credentials | undefined> => {
@@ -190,5 +193,8 @@ export const printCredentials = (roleCredentials: Credentials): void => {
 
 export const writeCredentialsCacheFile = async (roleCredentials: Credentials): Promise<void> => {
     const credentialsCachePath = path.join(os.homedir(), '.aws-sso-auth-credentials.json');
-    await fsPromises.writeFile(credentialsCachePath, credentialsToJson(roleCredentials), 'utf8');
+    await fsPromises.writeFile(credentialsCachePath, credentialsToJson(roleCredentials), {
+        encoding: 'utf8',
+        mode: 0o600,
+    });
 };
