@@ -1,8 +1,14 @@
 ### Changelog
 
-#### [v2.2.2](https://github.com/isotoma/aws-sso-auth/compare/2.2.1...v2.2.2)
+#### [v2.2.3](https://github.com/isotoma/aws-sso-auth/compare/2.2.2...v2.2.3)
 
-> 23 June 2020
+> 24 July 2020
+
+- Bump lodash from 4.17.15 to 4.17.19 [`#22`](https://github.com/isotoma/aws-sso-auth/pull/22)
+
+#### [2.2.2](https://github.com/isotoma/aws-sso-auth/compare/2.2.1...2.2.2)
+
+> 24 June 2020
 
 - Fix docs for credential_process [`882df93`](https://github.com/isotoma/aws-sso-auth/commit/882df93fa13b49cbf929e24b751ffb0fac06cde7)
 

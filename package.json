@@ -1,6 +1,6 @@
 {
   "name": "aws-sso-auth",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "",
   "bin": "bin.js",
   "engines": {
