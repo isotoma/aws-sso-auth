@@ -8,7 +8,7 @@ import mockfs from 'mock-fs';
 import { exec } from 'child_process';
 
 import { run, main } from '../main';
-import { BadAWSCLIVersionError, NoCachedCredentialsError, ArgumentsError } from '../errors';
+import { BadAWSCLIVersionError, NoCachedCredentialsError, ArgumentsError, MisbehavingExpiryDateError } from '../errors';
 
 interface CmdOutput {
     stdout: string;
@@ -183,6 +183,130 @@ describe('run', () => {
             '',
         ];
         expect(foundCredentialsContent).toEqual(expectedLines.join('\n'));
+    });
+
+    test('run, handles non-expired latest cache file, but credentials still fail with error due to expiry (see https://github.com/isotoma/aws-sso-auth/issues/23)', async () => {
+        const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        const content = {
+            // Still valid for a bit
+            expiresAt: new Date(new Date().getTime() + 30 * 1000),
+            region: 'myregion',
+            accessToken: 'not_actually_valid_access_token',
+        };
+        fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/wrongly_claims_to_be_valid.json'), JSON.stringify(content), 'utf8');
+
+        let didThrowError = false;
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(
+            mockExecCommandsFactory({
+                ...defaultExecMocks,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                'aws sso get-role-credentials': (cmd: string, options: object): CmdOutput => {
+                    if (cmd.includes('not_actually_valid_access_token')) {
+                        didThrowError = true;
+                        throw {
+                            stderr: 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid',
+                        };
+                    } else {
+                        const content = {
+                            roleCredentials: {
+                                accessKeyId: 'myaccesskeyid',
+                                secretAccessKey: 'mysecretaccesskey',
+                                sessionToken: 'mysessiontoken',
+                                expiration: new Date(3020, 0, 1, 12, 30, 0).getTime(),
+                            },
+                        };
+                        return {
+                            stdout: JSON.stringify(content),
+                            stderr: '',
+                        };
+                    }
+                },
+            }),
+        );
+
+        await run({
+            verbose: false,
+            profile: undefined,
+            credentialsProcessOutput: false,
+        });
+
+        expect(didThrowError).toBe(true);
+        const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
+
+        const expectedLines = [
+            '[default]',
+            'aws_access_key_id = myaccesskeyid',
+            'aws_secret_access_key = mysecretaccesskey',
+            'aws_session_token = mysessiontoken',
+            'aws_security_token = mysessiontoken',
+            '',
+        ];
+        expect(foundCredentialsContent).toEqual(expectedLines.join('\n'));
+    });
+
+    test('run, errors if running aws sso login creates non-expired latest cache file, but credentials still fail with error due to expiry, and does not re-run aws sso login (see https://github.com/isotoma/aws-sso-auth/issues/23)', async () => {
+        const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        let awsSsoLoginCallCount = 0;
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(
+            mockExecCommandsFactory({
+                ...defaultExecMocks,
+                'aws sso login': (cmd: string, options: object): void => {
+                    awsSsoLoginCallCount++;
+                    const fn = defaultExecMocks['aws sso login'];
+                    fn(cmd, options);
+                },
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                'aws sso get-role-credentials': (cmd: string, options: object): CmdOutput => {
+                    throw {
+                        stderr: 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid',
+                    };
+                },
+            }),
+        );
+
+        await expect(
+            run({
+                verbose: false,
+                profile: undefined,
+                credentialsProcessOutput: false,
+            }),
+        ).rejects.toThrow(MisbehavingExpiryDateError);
+
+        expect(awsSsoLoginCallCount).toEqual(1);
+    });
+
+    test('run, errors if get-role-credentials throws an unexpected error)', async () => {
+        const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(
+            mockExecCommandsFactory({
+                ...defaultExecMocks,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                'aws sso get-role-credentials': (cmd: string, options: object): CmdOutput => {
+                    throw {
+                        stderr: 'Unknown error occurred',
+                    };
+                },
+            }),
+        );
+
+        await expect(
+            run({
+                verbose: false,
+                profile: undefined,
+                credentialsProcessOutput: false,
+            }),
+        ).rejects.toEqual({ stderr: 'Unknown error occurred' });
     });
 
     test('run, errors if aws sso login fails to generate a cache file', async () => {
