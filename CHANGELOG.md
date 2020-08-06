@@ -1,6 +1,12 @@
 ### Changelog
 
-#### [v2.2.3](https://github.com/isotoma/aws-sso-auth/compare/2.2.2...v2.2.3)
+#### [v2.2.4](https://github.com/isotoma/aws-sso-auth/compare/2.2.3...v2.2.4)
+
+> 6 August 2020
+
+- Session token expiry workaround (#23) [`#24`](https://github.com/isotoma/aws-sso-auth/pull/24)
+
+#### [2.2.3](https://github.com/isotoma/aws-sso-auth/compare/2.2.2...2.2.3)
 
 > 24 July 2020
 
