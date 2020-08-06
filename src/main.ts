@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 
 import yargs from 'yargs';
 
-import { ArgumentsError, NoCachedCredentialsError, BadAWSCLIVersionError } from './errors';
+import { ArgumentsError, NoCachedCredentialsError, BadAWSCLIVersionError, MisbehavingExpiryDateError } from './errors';
 import { checkCLIVersion } from './checkCLIVersion';
 import { getVersionNumber } from './getVersion';
 import { findLatestCacheFile } from './cache';
@@ -51,9 +51,10 @@ export const run = async (props: RunProps): Promise<void> => {
 
     log('Locating latest SSO cache file...');
 
+    let haveRunSsoLogin = false;
     let latestCacheFile = await findLatestCacheFile();
 
-    if (typeof latestCacheFile === 'undefined' || latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
+    const runSsoLogin = async (): Promise<void> => {
         log('No valid SSO cache file found, running login...');
         await execPromise('aws sso login', {
             env: {
@@ -61,31 +62,70 @@ export const run = async (props: RunProps): Promise<void> => {
                 AWS_PROFILE: props.profile || 'default',
             },
         });
+        haveRunSsoLogin = true;
+
         log('Login completed, trying again to retrieve credentials from SSO cache');
         latestCacheFile = await findLatestCacheFile();
-    }
+    };
 
-    if (typeof latestCacheFile === 'undefined') {
-        throw new NoCachedCredentialsError('Unable to retrieve credentials from SSO cache');
+    if (typeof latestCacheFile === 'undefined' || latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
+        await runSsoLogin();
     }
 
     log('Retrieving SSO configuration from AWS config file...');
     const ssoConfig = await findSSOConfigFromAWSConfig(props.profile);
     log('Got SSO configuration');
 
+    const runGetRoleCredentialsCmdOutput = async (): Promise<string> => {
+        if (typeof latestCacheFile === 'undefined') {
+            throw new NoCachedCredentialsError('Unable to retrieve credentials from SSO cache');
+        }
+
+        try {
+            const getRoleCredentialsCmdOutput = await execPromise(
+                `aws sso get-role-credentials --role-name "${ssoConfig.roleName}" --account-id "${ssoConfig.accountId}" --access-token "${latestCacheFile.accessToken}" --region "${latestCacheFile.region}"`,
+                {
+                    env: {
+                        ...process.env,
+                        AWS_PROFILE: props.profile || 'default',
+                    },
+                },
+            );
+            return getRoleCredentialsCmdOutput.stdout;
+        } catch (err) {
+            if (
+                err.stderr &&
+                typeof err.stderr === 'string' &&
+                err.stderr.trim() === 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid'
+            ) {
+                throw new MisbehavingExpiryDateError('Expiry date is in the future, but the credentials appear to have expired');
+            }
+            throw err;
+        }
+    };
+
     log('Using SSO credentials to get role credentials...');
-    const getRoleCredentialsCmdOutput = await execPromise(
-        `aws sso get-role-credentials --role-name "${ssoConfig.roleName}" --account-id "${ssoConfig.accountId}" --access-token "${latestCacheFile.accessToken}" --region "${latestCacheFile.region}"`,
-        {
-            env: {
-                ...process.env,
-                AWS_PROFILE: props.profile || 'default',
-            },
-        },
-    );
+
+    let roleCredentialsOutput: string;
+    try {
+        roleCredentialsOutput = await runGetRoleCredentialsCmdOutput();
+    } catch (err) {
+        if (err instanceof MisbehavingExpiryDateError) {
+            if (haveRunSsoLogin) {
+                throw err;
+            } else {
+                log('Expiry date appears to be deceptive, running login...');
+                await runSsoLogin();
+                log('Again using SSO credentials to get role credentials...');
+                roleCredentialsOutput = await runGetRoleCredentialsCmdOutput();
+            }
+        } else {
+            throw err;
+        }
+    }
 
     log('Parsing role credentials...');
-    const roleCredentials = parseRoleCredentialsOutput(getRoleCredentialsCmdOutput.stdout);
+    const roleCredentials = parseRoleCredentialsOutput(roleCredentialsOutput);
     log('Got role credentials');
 
     if (props.credentialsProcessOutput) {

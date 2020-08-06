@@ -27,3 +27,7 @@ export class UnexpectedGetRoleCredentialsOutputError extends ApplicationError {
 export class BadAWSCLIVersionError extends ApplicationError {
     readonly prefix = 'BadAWSCLIVersionError';
 }
+
+export class MisbehavingExpiryDateError extends ApplicationError {
+    readonly prefix = 'MisbehavingExpiryDateError';
+}
