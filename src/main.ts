@@ -153,7 +153,8 @@ export const main = async (args: Array<string>): Promise<void> => {
         .describe('profile', 'Specify an AWS profile (in ~/.aws/config) to use instead of the default profile')
         .usage('Usage: $0 [...options]')
         .strict()
-        .fail((msg: string, err: Error | null, yargs: yargs.Argv): void => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .fail((msg: string, err: Error | null, yargsObj: yargs.Argv): void => {
             /* istanbul ignore next */
             if (err) throw err;
             throw new ArgumentsError(msg);
