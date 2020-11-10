@@ -211,7 +211,7 @@ describe('run', () => {
                             stderr: 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid',
                         };
                     } else {
-                        const content = {
+                        const roleCredentialsContent = {
                             roleCredentials: {
                                 accessKeyId: 'myaccesskeyid',
                                 secretAccessKey: 'mysecretaccesskey',
@@ -220,7 +220,7 @@ describe('run', () => {
                             },
                         };
                         return {
-                            stdout: JSON.stringify(content),
+                            stdout: JSON.stringify(roleCredentialsContent),
                             stderr: '',
                         };
                     }
