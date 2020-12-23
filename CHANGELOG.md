@@ -1,6 +1,12 @@
 ### Changelog
 
-#### [v2.2.5](https://github.com/isotoma/aws-sso-auth/compare/2.2.4...v2.2.5)
+#### [v2.2.6](https://github.com/isotoma/aws-sso-auth/compare/2.2.5...v2.2.6)
+
+> 23 December 2020
+
+- Bump ini from 1.3.5 to 1.3.6 [`#28`](https://github.com/isotoma/aws-sso-auth/pull/28)
+
+#### [2.2.5](https://github.com/isotoma/aws-sso-auth/compare/2.2.4...2.2.5)
 
 > 10 November 2020
 
