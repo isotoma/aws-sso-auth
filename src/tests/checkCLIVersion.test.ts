@@ -17,7 +17,7 @@ describe('checkCLIVersion', () => {
 
     test('checkCLIVersion', async () => {
         const execMock = (exec as unknown) as jest.Mock<void>;
-        execMock.mockImplementation((cmd: string, options: object, callback: (err: Error | null, out: CmdOutput) => void): void => {
+        execMock.mockImplementation((cmd: string, options: unknown, callback: (err: Error | null, out: CmdOutput) => void): void => {
             callback(null, {
                 stdout: 'aws-cli/2.0.0',
                 stderr: '',
@@ -29,7 +29,7 @@ describe('checkCLIVersion', () => {
 
     test('throw error', async () => {
         const execMock = (exec as unknown) as jest.Mock<void>;
-        execMock.mockImplementation((cmd: string, options: object, callback: (err: Error | null, out: CmdOutput) => void): void => {
+        execMock.mockImplementation((cmd: string, options: unknown, callback: (err: Error | null, out: CmdOutput) => void): void => {
             callback(new Error('Command failed'), {
                 stdout: '',
                 stderr: '',

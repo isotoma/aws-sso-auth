@@ -161,7 +161,7 @@ export const main = async (args: Array<string>): Promise<void> => {
         })
         .parse(args);
 
-    const positionalArgs: Array<string> = parsedArgs._;
+    const positionalArgs: Array<string> = parsedArgs._.map((arg: string | number): string => `${arg}`);
 
     if (positionalArgs.length > 2) {
         throw new ArgumentsError('Too many positional arguments');
