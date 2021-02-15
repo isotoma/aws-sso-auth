@@ -15,13 +15,13 @@ interface CmdOutput {
     stderr: string;
 }
 
-type MockExecCommand = (cmd: string, options: object) => CmdOutput | void;
+type MockExecCommand = (cmd: string, options: unknown) => CmdOutput | void;
 
 interface MockExecCommands {
     [key: string]: MockExecCommand;
 }
 
-type MockExec = (cmd: string, options: object, callback: (err: Error | null, out: CmdOutput) => void) => void;
+type MockExec = (cmd: string, options: unknown, callback: (err: Error | null, out: CmdOutput) => void) => void;
 
 const emptyOutput: CmdOutput = {
     stdout: '',
@@ -29,7 +29,7 @@ const emptyOutput: CmdOutput = {
 };
 
 const mockExecCommandsFactory = (mockExecCommands: MockExecCommands): MockExec => {
-    return (cmd: string, options: object, callback: (err: Error | null, out: CmdOutput) => void): void => {
+    return (cmd: string, options: unknown, callback: (err: Error | null, out: CmdOutput) => void): void => {
         for (const key in mockExecCommands) {
             if (cmd.startsWith(key)) {
                 const mockExecCommand: MockExecCommand = mockExecCommands[key];
@@ -50,7 +50,7 @@ const mockExecCommandsFactory = (mockExecCommands: MockExecCommands): MockExec =
 
 const defaultExecMocks = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    'aws sso login': (cmd: string, options: object): void => {
+    'aws sso login': (cmd: string, options: unknown): void => {
         const content = {
             expiresAt: new Date(new Date().getTime() + 60 * 1000),
             region: 'myregion',
@@ -59,7 +59,7 @@ const defaultExecMocks = {
         fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/example.json'), JSON.stringify(content), 'utf8');
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    'aws sso get-role-credentials': (cmd: string, options: object): CmdOutput => {
+    'aws sso get-role-credentials': (cmd: string, options: unknown): CmdOutput => {
         const content = {
             roleCredentials: {
                 accessKeyId: 'myaccesskeyid',
@@ -74,7 +74,7 @@ const defaultExecMocks = {
         };
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    'aws --version': (cmd: string, options: object): CmdOutput => {
+    'aws --version': (cmd: string, options: unknown): CmdOutput => {
         return {
             stdout: 'aws-cli/2.0.21 Python/3.7.3 Linux/5.7.2-arch1-1 botocore/2.0.0dev25',
             stderr: '',
@@ -204,7 +204,7 @@ describe('run', () => {
             mockExecCommandsFactory({
                 ...defaultExecMocks,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                'aws sso get-role-credentials': (cmd: string, options: object): CmdOutput => {
+                'aws sso get-role-credentials': (cmd: string, options: unknown): CmdOutput => {
                     if (cmd.includes('not_actually_valid_access_token')) {
                         didThrowError = true;
                         throw {
@@ -258,13 +258,13 @@ describe('run', () => {
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
-                'aws sso login': (cmd: string, options: object): void => {
+                'aws sso login': (cmd: string, options: unknown): void => {
                     awsSsoLoginCallCount++;
                     const fn = defaultExecMocks['aws sso login'];
                     fn(cmd, options);
                 },
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                'aws sso get-role-credentials': (cmd: string, options: object): CmdOutput => {
+                'aws sso get-role-credentials': (cmd: string, options: unknown): CmdOutput => {
                     throw {
                         stderr: 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid',
                     };
@@ -292,7 +292,7 @@ describe('run', () => {
             mockExecCommandsFactory({
                 ...defaultExecMocks,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                'aws sso get-role-credentials': (cmd: string, options: object): CmdOutput => {
+                'aws sso get-role-credentials': (cmd: string, options: unknown): CmdOutput => {
                     throw {
                         stderr: 'Unknown error occurred',
                     };
@@ -318,7 +318,7 @@ describe('run', () => {
             mockExecCommandsFactory({
                 ...defaultExecMocks,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                'aws sso login': (cmd: string, options: object): void => {
+                'aws sso login': (cmd: string, options: unknown): void => {
                     // do nothing
                 },
             }),
@@ -441,7 +441,7 @@ describe('run', () => {
             mockExecCommandsFactory({
                 ...defaultExecMocks,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                'aws --version': (cmd: string, options: object): CmdOutput => {
+                'aws --version': (cmd: string, options: unknown): CmdOutput => {
                     return {
                         stdout: 'aws-cli/1',
                         stderr: '',
