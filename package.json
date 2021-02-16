@@ -4,12 +4,12 @@
   "description": "",
   "bin": "bin.js",
   "engines": {
-    "node": ">=12.13.0 <13",
-    "npm": ">=6.11.0 <7"
+    "node": ">=14.15.5 <15",
+    "npm": ">=6.14.11 <7"
   },
   "scripts": {
     "build": "rm -rf build/ && npm run -- tsc --project ./tsconfig.dist.json --noEmitOnError --outDir ./build && cp package.json package-lock.json README.md ./build/ && (cd ./build && npm ci --only=production)",
-    "package": "npm run build && rm -rf dist/ && mkdir -p dist && npm run -- pkg ./build --out-path ./dist",
+    "package": "npm run build && rm -rf dist/ && mkdir -p dist && npm run -- pkg ./build --targets=node14-linux-x64,node14-macos-x64,node14-win-x64 --out-path ./dist",
     "pkg": "pkg",
     "compile": "npm run tsc --noEmitOnError",
     "version": "auto-changelog --template ./changelog_template.hbs -p && git add CHANGELOG.md",
