@@ -6,8 +6,8 @@ import yargs from 'yargs';
 import { ArgumentsError, NoCachedCredentialsError, BadAWSCLIVersionError, MisbehavingExpiryDateError } from './errors';
 import { checkCLIVersion } from './checkCLIVersion';
 import { getVersionNumber } from './getVersion';
-import { findLatestCacheFile } from './cache';
-import { findSSOConfigFromAWSConfig } from './ssoConfig';
+import { findLatestCacheFile, SSOCacheToken } from './cache';
+import { findSSOConfigFromAWSConfig, SSOConfigOptions } from './ssoConfig';
 import { parseRoleCredentialsOutput, writeCredentialsFile, writeCredentialsCacheFile, readCredentialsCacheFile, printCredentials } from './roleCredentials';
 
 const execPromise = util.promisify(exec);
@@ -18,7 +18,9 @@ interface RunProps {
     credentialsProcessOutput: boolean;
 }
 
-const getLogger = (verbose: boolean): ((msg: string) => void) => {
+type LogFn = (msg: string) => void;
+
+const getLogger = (verbose: boolean): LogFn => {
     return (msg: string): void => {
         if (verbose) {
             console.error('INFO:', msg);
@@ -26,8 +28,64 @@ const getLogger = (verbose: boolean): ((msg: string) => void) => {
     };
 };
 
+let log: LogFn;
+
+interface GetRoleContext {
+    ssoConfig: SSOConfigOptions;
+    ssoLoginContext: SSOLoginContext;
+}
+
+const runGetRoleCredentialsCmdOutput = async (context: GetRoleContext): Promise<string> => {
+    if (typeof context.ssoLoginContext.latestCacheFile === 'undefined') {
+        throw new NoCachedCredentialsError('Unable to retrieve credentials from SSO cache');
+    }
+
+    try {
+        const getRoleCredentialsCmdOutput = await execPromise(
+            `aws sso get-role-credentials --role-name "${context.ssoConfig.roleName}" --account-id "${context.ssoConfig.accountId}" --access-token "${context.ssoLoginContext.latestCacheFile.accessToken}" --region "${context.ssoLoginContext.latestCacheFile.region}"`,
+            {
+                env: {
+                    ...process.env,
+                    AWS_PROFILE: context.ssoLoginContext.awsProfile || 'default',
+                },
+            },
+        );
+        return getRoleCredentialsCmdOutput.stdout;
+    } catch (err) {
+        if (
+            err.stderr &&
+            typeof err.stderr === 'string' &&
+            err.stderr.trim() === 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid'
+        ) {
+            throw new MisbehavingExpiryDateError('Expiry date is in the future, but the credentials appear to have expired');
+        }
+        throw err;
+    }
+};
+
+interface SSOLoginContext {
+    haveRunSsoLogin: boolean;
+    latestCacheFile: SSOCacheToken | undefined;
+    awsProfile: string | undefined;
+}
+
+const runSsoLogin = async (context: SSOLoginContext): Promise<void> => {
+    log('No valid SSO cache file found, running login...');
+    await execPromise('aws sso login', {
+        env: {
+            ...process.env,
+            AWS_PROFILE: context.awsProfile || 'default',
+        },
+    });
+    context.haveRunSsoLogin = true;
+
+    log('Login completed, trying again to retrieve credentials from SSO cache');
+    context.latestCacheFile = await findLatestCacheFile();
+};
+
 export const run = async (props: RunProps): Promise<void> => {
-    const log = getLogger(props.verbose);
+    log = getLogger(props.verbose);
+
     log('Starting');
 
     log('Checking CLI version...');
@@ -51,73 +109,38 @@ export const run = async (props: RunProps): Promise<void> => {
 
     log('Locating latest SSO cache file...');
 
-    let haveRunSsoLogin = false;
-    let latestCacheFile = await findLatestCacheFile();
-
-    const runSsoLogin = async (): Promise<void> => {
-        log('No valid SSO cache file found, running login...');
-        await execPromise('aws sso login', {
-            env: {
-                ...process.env,
-                AWS_PROFILE: props.profile || 'default',
-            },
-        });
-        haveRunSsoLogin = true;
-
-        log('Login completed, trying again to retrieve credentials from SSO cache');
-        latestCacheFile = await findLatestCacheFile();
+    const ssoLoginContext: SSOLoginContext = {
+        haveRunSsoLogin: false,
+        latestCacheFile: await findLatestCacheFile(),
+        awsProfile: props.profile,
     };
 
-    if (typeof latestCacheFile === 'undefined' || latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
-        await runSsoLogin();
+    if (typeof ssoLoginContext.latestCacheFile === 'undefined' || ssoLoginContext.latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
+        await runSsoLogin(ssoLoginContext);
     }
 
     log('Retrieving SSO configuration from AWS config file...');
     const ssoConfig = await findSSOConfigFromAWSConfig(props.profile);
     log('Got SSO configuration');
 
-    const runGetRoleCredentialsCmdOutput = async (): Promise<string> => {
-        if (typeof latestCacheFile === 'undefined') {
-            throw new NoCachedCredentialsError('Unable to retrieve credentials from SSO cache');
-        }
-
-        try {
-            const getRoleCredentialsCmdOutput = await execPromise(
-                `aws sso get-role-credentials --role-name "${ssoConfig.roleName}" --account-id "${ssoConfig.accountId}" --access-token "${latestCacheFile.accessToken}" --region "${latestCacheFile.region}"`,
-                {
-                    env: {
-                        ...process.env,
-                        AWS_PROFILE: props.profile || 'default',
-                    },
-                },
-            );
-            return getRoleCredentialsCmdOutput.stdout;
-        } catch (err) {
-            if (
-                err.stderr &&
-                typeof err.stderr === 'string' &&
-                err.stderr.trim() === 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid'
-            ) {
-                throw new MisbehavingExpiryDateError('Expiry date is in the future, but the credentials appear to have expired');
-            }
-            throw err;
-        }
-    };
-
     log('Using SSO credentials to get role credentials...');
 
     let roleCredentialsOutput: string;
+    const getRoleContext = {
+        ssoConfig,
+        ssoLoginContext,
+    };
     try {
-        roleCredentialsOutput = await runGetRoleCredentialsCmdOutput();
+        roleCredentialsOutput = await runGetRoleCredentialsCmdOutput(getRoleContext);
     } catch (err) {
         if (err instanceof MisbehavingExpiryDateError) {
-            if (haveRunSsoLogin) {
+            if (ssoLoginContext.haveRunSsoLogin) {
                 throw err;
             } else {
                 log('Expiry date appears to be deceptive, running login...');
-                await runSsoLogin();
+                await runSsoLogin(ssoLoginContext);
                 log('Again using SSO credentials to get role credentials...');
-                roleCredentialsOutput = await runGetRoleCredentialsCmdOutput();
+                roleCredentialsOutput = await runGetRoleCredentialsCmdOutput(getRoleContext);
             }
         } else {
             throw err;
