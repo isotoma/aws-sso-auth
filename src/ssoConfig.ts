@@ -9,7 +9,7 @@ import { hasKey } from './utils';
 
 const fsPromises = fs.promises;
 
-interface SSOConfigOptions {
+export interface SSOConfigOptions {
     readonly roleName: string;
     readonly accountId: string;
 }

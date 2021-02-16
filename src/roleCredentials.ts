@@ -112,7 +112,6 @@ export const readCredentialsCacheFile = async (): Promise<Credentials | undefine
         return undefined;
     }
 
-    // TODO: type checking
     let parsed: unknown;
     try {
         parsed = JSON.parse(content);
