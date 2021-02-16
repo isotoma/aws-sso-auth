@@ -1,6 +1,11 @@
 ### Changelog
 
-#### [v2.2.6](https://github.com/isotoma/aws-sso-auth/compare/2.2.5...v2.2.6)
+#### [v2.2.7](https://github.com/isotoma/aws-sso-auth/compare/2.2.6...v2.2.7)
+
+- Tidying for sonarcloud [`#30`](https://github.com/isotoma/aws-sso-auth/pull/30)
+- Upgrade dev dependencies [`#29`](https://github.com/isotoma/aws-sso-auth/pull/29)
+
+#### [2.2.6](https://github.com/isotoma/aws-sso-auth/compare/2.2.5...2.2.6)
 
 > 23 December 2020
 
@@ -28,13 +33,13 @@
 
 #### [2.2.2](https://github.com/isotoma/aws-sso-auth/compare/2.2.1...2.2.2)
 
-> 23 June 2020
+> 24 June 2020
 
 - Fix docs for credential_process [`882df93`](https://github.com/isotoma/aws-sso-auth/commit/882df93fa13b49cbf929e24b751ffb0fac06cde7)
 
 #### [2.2.1](https://github.com/isotoma/aws-sso-auth/compare/2.2.0...2.2.1)
 
-> 23 June 2020
+> 24 June 2020
 
 - Update docs for addition of --profile flag [`56c39eb`](https://github.com/isotoma/aws-sso-auth/commit/56c39ebb6911b6e4abe780d7e9074399ac65e3af)
 - Update docs to be more helpful for setting credential_process [`38e1f1d`](https://github.com/isotoma/aws-sso-auth/commit/38e1f1df6de2248d8709b56ac5fa5e5602d8be44)
@@ -42,7 +47,7 @@
 
 #### [2.2.0](https://github.com/isotoma/aws-sso-auth/compare/2.1.1...2.2.0)
 
-> 23 June 2020
+> 24 June 2020
 
 - Configurable profile name (#20) [`#21`](https://github.com/isotoma/aws-sso-auth/pull/21)
 - Owner-only access permissions on created files (#14) [`#19`](https://github.com/isotoma/aws-sso-auth/pull/19)
@@ -51,13 +56,13 @@
 
 #### [2.1.1](https://github.com/isotoma/aws-sso-auth/compare/2.1.0...2.1.1)
 
-> 20 June 2020
+> 21 June 2020
 
 - Fix version command when run in executable [`#15`](https://github.com/isotoma/aws-sso-auth/pull/15)
 
 #### [2.1.0](https://github.com/isotoma/aws-sso-auth/compare/2.0.0...2.1.0)
 
-> 19 June 2020
+> 20 June 2020
 
 - Verbose flag (#7) [`#11`](https://github.com/isotoma/aws-sso-auth/pull/11)
 - Version command (#6) [`#10`](https://github.com/isotoma/aws-sso-auth/pull/10)
