@@ -1,6 +1,12 @@
 ### Changelog
 
-#### [v2.2.7](https://github.com/isotoma/aws-sso-auth/compare/2.2.6...v2.2.7)
+#### [v2.3.0](https://github.com/isotoma/aws-sso-auth/compare/2.2.7...v2.3.0)
+
+- Use node v14 [`#31`](https://github.com/isotoma/aws-sso-auth/pull/31)
+
+#### [2.2.7](https://github.com/isotoma/aws-sso-auth/compare/2.2.6...2.2.7)
+
+> 16 February 2021
 
 - Tidying for sonarcloud [`#30`](https://github.com/isotoma/aws-sso-auth/pull/30)
 - Upgrade dev dependencies [`#29`](https://github.com/isotoma/aws-sso-auth/pull/29)
