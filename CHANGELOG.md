@@ -1,6 +1,12 @@
 ### Changelog
 
-#### [v2.3.0](https://github.com/isotoma/aws-sso-auth/compare/2.2.7...v2.3.0)
+#### [v2.3.1](https://github.com/isotoma/aws-sso-auth/compare/2.3.0...v2.3.1)
+
+- Bump y18n from 4.0.0 to 4.0.1 [`#33`](https://github.com/isotoma/aws-sso-auth/pull/33)
+
+#### [2.3.0](https://github.com/isotoma/aws-sso-auth/compare/2.2.7...2.3.0)
+
+> 16 February 2021
 
 - Use node v14 [`#31`](https://github.com/isotoma/aws-sso-auth/pull/31)
 
