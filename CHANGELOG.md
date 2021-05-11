@@ -1,6 +1,15 @@
 ### Changelog
 
-#### [v2.3.1](https://github.com/isotoma/aws-sso-auth/compare/2.3.0...v2.3.1)
+#### [v2.4.0](https://github.com/isotoma/aws-sso-auth/compare/2.3.1...v2.4.0)
+
+- Update pkg to 5.1.0 [`#36`](https://github.com/isotoma/aws-sso-auth/pull/36)
+- Bump hosted-git-info from 2.8.8 to 2.8.9 [`#35`](https://github.com/isotoma/aws-sso-auth/pull/35)
+- Bump lodash from 4.17.20 to 4.17.21 [`#34`](https://github.com/isotoma/aws-sso-auth/pull/34)
+- Docs: update for master-&gt;main default branch name [`20b012b`](https://github.com/isotoma/aws-sso-auth/commit/20b012b319c43b5c8f5205f885afa1fa1ef3c831)
+
+#### [2.3.1](https://github.com/isotoma/aws-sso-auth/compare/2.3.0...2.3.1)
+
+> 1 April 2021
 
 - Bump y18n from 4.0.0 to 4.0.1 [`#33`](https://github.com/isotoma/aws-sso-auth/pull/33)
 
