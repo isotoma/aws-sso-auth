@@ -1,6 +1,13 @@
 ### Changelog
 
-#### [v2.4.0](https://github.com/isotoma/aws-sso-auth/compare/2.3.1...v2.4.0)
+#### [v2.4.1](https://github.com/isotoma/aws-sso-auth/compare/2.4.0...v2.4.1)
+
+- Bump follow-redirects from 1.14.1 to 1.14.8 [`#38`](https://github.com/isotoma/aws-sso-auth/pull/38)
+- Use npm v7 [`#37`](https://github.com/isotoma/aws-sso-auth/pull/37)
+
+#### [2.4.0](https://github.com/isotoma/aws-sso-auth/compare/2.3.1...2.4.0)
+
+> 11 May 2021
 
 - Update pkg to 5.1.0 [`#36`](https://github.com/isotoma/aws-sso-auth/pull/36)
 - Bump hosted-git-info from 2.8.8 to 2.8.9 [`#35`](https://github.com/isotoma/aws-sso-auth/pull/35)
