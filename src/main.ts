@@ -115,9 +115,9 @@ export const run = async (props: RunProps): Promise<void> => {
         awsProfile: props.profile,
     };
 
-    const date = new Date()
+    const date = new Date();
     // Token actually expires 10 minutes earlier than expected
-    date.setMinutes(date.getMinutes() - 10)
+    date.setMinutes(date.getMinutes() - 10);
 
     if (typeof ssoLoginContext.latestCacheFile === 'undefined' || ssoLoginContext.latestCacheFile.expiresAt.getTime() < date.getTime()) {
         await runSsoLogin(ssoLoginContext);
