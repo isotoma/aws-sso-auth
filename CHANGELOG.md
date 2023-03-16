@@ -1,6 +1,23 @@
 ### Changelog
 
-#### [v2.4.1](https://github.com/isotoma/aws-sso-auth/compare/2.4.0...v2.4.1)
+#### [v2.5.0](https://github.com/isotoma/aws-sso-auth/compare/2.4.1...v2.5.0)
+
+- Add --force and --skip-expiry-check options [`#51`](https://github.com/isotoma/aws-sso-auth/pull/51)
+- SonarCloud: ignore duplication in tests [`#53`](https://github.com/isotoma/aws-sso-auth/pull/53)
+- Fix CI [`#52`](https://github.com/isotoma/aws-sso-auth/pull/52)
+- Upgrade ansi-regex [`#47`](https://github.com/isotoma/aws-sso-auth/pull/47)
+- Upgrade json-schema [`#46`](https://github.com/isotoma/aws-sso-auth/pull/46)
+- Bump simple-get from 3.1.0 to 3.1.1 [`#45`](https://github.com/isotoma/aws-sso-auth/pull/45)
+- Bump node-fetch from 2.6.1 to 2.6.7 [`#44`](https://github.com/isotoma/aws-sso-auth/pull/44)
+- Bump tmpl from 1.0.4 to 1.0.5 [`#43`](https://github.com/isotoma/aws-sso-auth/pull/43)
+- Bump ws from 7.4.3 to 7.5.7 [`#42`](https://github.com/isotoma/aws-sso-auth/pull/42)
+- Bump glob-parent from 5.1.1 to 5.1.2 [`#41`](https://github.com/isotoma/aws-sso-auth/pull/41)
+- Bump axios from 0.21.1 to 0.21.4 [`#40`](https://github.com/isotoma/aws-sso-auth/pull/40)
+- Bump path-parse from 1.0.6 to 1.0.7 [`#39`](https://github.com/isotoma/aws-sso-auth/pull/39)
+
+#### [2.4.1](https://github.com/isotoma/aws-sso-auth/compare/2.4.0...2.4.1)
+
+> 14 February 2022
 
 - Bump follow-redirects from 1.14.1 to 1.14.8 [`#38`](https://github.com/isotoma/aws-sso-auth/pull/38)
 - Use npm v7 [`#37`](https://github.com/isotoma/aws-sso-auth/pull/37)
