@@ -56,7 +56,11 @@ const defaultExecMocks = {
             region: 'myregion',
             accessToken: 'myaccesstoken',
         };
-        fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/example.json'), JSON.stringify(content), 'utf8');
+        const cacheFilePath = path.join(os.homedir(), '.aws/sso/cache/example.json');
+        fs.mkdirSync(path.dirname(cacheFilePath), {
+            recursive: true,
+        });
+        fs.writeFileSync(cacheFilePath, JSON.stringify(content), 'utf8');
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     'aws sso get-role-credentials': (cmd: string, options: unknown): CmdOutput => {
@@ -108,6 +112,8 @@ describe('run', () => {
             verbose: false,
             profile: undefined,
             credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: false,
         });
 
         const expectedPath = path.join(os.homedir(), '.aws/credentials');
@@ -141,6 +147,8 @@ describe('run', () => {
             verbose: false,
             profile: undefined,
             credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: false,
         });
 
         const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
@@ -170,6 +178,39 @@ describe('run', () => {
             verbose: false,
             profile: undefined,
             credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: false,
+        });
+
+        const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
+
+        const expectedLines = [
+            '[default]',
+            'aws_access_key_id = myaccesskeyid',
+            'aws_secret_access_key = mysecretaccesskey',
+            'aws_session_token = mysessiontoken',
+            'aws_security_token = mysessiontoken',
+            '',
+        ];
+        expect(foundCredentialsContent).toEqual(expectedLines.join('\n'));
+    });
+
+    test('run, handles non-expired latest cache file, but skipExpiryCheck', async () => {
+        const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "3020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        await run({
+            verbose: false,
+            profile: undefined,
+            credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: true,
         });
 
         const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
@@ -232,6 +273,8 @@ describe('run', () => {
             verbose: false,
             profile: undefined,
             credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: false,
         });
 
         expect(didThrowError).toBe(true);
@@ -277,6 +320,8 @@ describe('run', () => {
                 verbose: false,
                 profile: undefined,
                 credentialsProcessOutput: false,
+                force: false,
+                skipExpiryCheck: false,
             }),
         ).rejects.toThrow(MisbehavingExpiryDateError);
 
@@ -305,6 +350,8 @@ describe('run', () => {
                 verbose: false,
                 profile: undefined,
                 credentialsProcessOutput: false,
+                force: false,
+                skipExpiryCheck: false,
             }),
         ).rejects.toEqual({ stderr: 'Unknown error occurred' });
     });
@@ -329,6 +376,8 @@ describe('run', () => {
                 verbose: false,
                 profile: undefined,
                 credentialsProcessOutput: false,
+                force: false,
+                skipExpiryCheck: false,
             }),
         ).rejects.toThrow(NoCachedCredentialsError);
     });
@@ -346,6 +395,8 @@ describe('run', () => {
             verbose: false,
             profile: undefined,
             credentialsProcessOutput: true,
+            force: false,
+            skipExpiryCheck: false,
         });
 
         expect(consoleLogSpy).toHaveBeenCalledWith(
@@ -376,6 +427,8 @@ describe('run', () => {
             verbose: false,
             profile: undefined,
             credentialsProcessOutput: true,
+            force: false,
+            skipExpiryCheck: false,
         });
 
         expect(consoleLogSpy).toHaveBeenCalledWith(
@@ -398,6 +451,8 @@ describe('run', () => {
             verbose: true,
             profile: undefined,
             credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: false,
         });
 
         expect(consoleErrorSpy).toHaveBeenCalledWith('INFO:', 'Starting');
@@ -417,6 +472,8 @@ describe('run', () => {
             verbose: false,
             profile: 'myprofile',
             credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: false,
         });
 
         const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
@@ -455,8 +512,82 @@ describe('run', () => {
                 verbose: false,
                 profile: undefined,
                 credentialsProcessOutput: false,
+                force: false,
+                skipExpiryCheck: false,
             }),
         ).rejects.toThrow(BadAWSCLIVersionError);
+    });
+
+    test('run, force', async () => {
+        const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "3020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
+
+        const credentialsLines = [
+            '[default]',
+            'aws_access_key_id = myoldaccesskeyid',
+            'aws_secret_access_key = myoldsecretaccesskey',
+            'aws_session_token = myoldsessiontoken',
+            'aws_security_token = myoldsessiontoken',
+            '',
+        ];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/credentials'), credentialsLines.join('\n'), 'utf8');
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        await run({
+            verbose: false,
+            profile: undefined,
+            credentialsProcessOutput: false,
+            force: true,
+            skipExpiryCheck: false,
+        });
+
+        const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
+
+        const expectedLines = [
+            '[default]',
+            'aws_access_key_id = myaccesskeyid',
+            'aws_secret_access_key = mysecretaccesskey',
+            'aws_session_token = mysessiontoken',
+            'aws_security_token = mysessiontoken',
+            '',
+        ];
+        expect(foundCredentialsContent).toEqual(expectedLines.join('\n'));
+    });
+
+    test('run, force, no existing credentials file', async () => {
+        const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "3020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        await run({
+            verbose: false,
+            profile: undefined,
+            credentialsProcessOutput: false,
+            force: true,
+            skipExpiryCheck: false,
+        });
+
+        const foundCredentialsContent = fs.readFileSync(path.join(os.homedir(), '.aws/credentials'), 'utf8');
+
+        const expectedLines = [
+            '[default]',
+            'aws_access_key_id = myaccesskeyid',
+            'aws_secret_access_key = mysecretaccesskey',
+            'aws_session_token = mysessiontoken',
+            'aws_security_token = mysessiontoken',
+            '',
+        ];
+        expect(foundCredentialsContent).toEqual(expectedLines.join('\n'));
     });
 });
 

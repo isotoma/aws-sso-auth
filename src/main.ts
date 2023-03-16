@@ -6,7 +6,7 @@ import yargs from 'yargs';
 import { ArgumentsError, NoCachedCredentialsError, BadAWSCLIVersionError, MisbehavingExpiryDateError } from './errors';
 import { checkCLIVersion } from './checkCLIVersion';
 import { getVersionNumber } from './getVersion';
-import { findLatestCacheFile, SSOCacheToken } from './cache';
+import { findLatestCacheFile, SSOCacheToken, deleteCredentialsAndCaches } from './cache';
 import { findSSOConfigFromAWSConfig, SSOConfigOptions } from './ssoConfig';
 import { parseRoleCredentialsOutput, writeCredentialsFile, writeCredentialsCacheFile, readCredentialsCacheFile, printCredentials } from './roleCredentials';
 
@@ -16,6 +16,8 @@ interface RunProps {
     verbose: boolean;
     profile: string | undefined;
     credentialsProcessOutput: boolean;
+    force: boolean;
+    skipExpiryCheck: boolean;
 }
 
 type LogFn = (msg: string) => void;
@@ -96,6 +98,11 @@ export const run = async (props: RunProps): Promise<void> => {
 
     log('CLI version OK');
 
+    if (props.force) {
+        log('Deleting credentials, and SSO and CLI caches');
+        await deleteCredentialsAndCaches();
+    }
+
     if (props.credentialsProcessOutput) {
         log('Attempting to retrieve credentials from role credentials cache file');
         const creds = await readCredentialsCacheFile();
@@ -115,7 +122,7 @@ export const run = async (props: RunProps): Promise<void> => {
         awsProfile: props.profile,
     };
 
-    if (typeof ssoLoginContext.latestCacheFile === 'undefined' || ssoLoginContext.latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
+    if (props.skipExpiryCheck || typeof ssoLoginContext.latestCacheFile === 'undefined' || ssoLoginContext.latestCacheFile.expiresAt.getTime() < new Date().getTime()) {
         await runSsoLogin(ssoLoginContext);
     }
 
@@ -174,6 +181,10 @@ export const main = async (args: Array<string>): Promise<void> => {
         .describe('verbose', 'Be verbose')
         .string('profile')
         .describe('profile', 'Specify an AWS profile (in ~/.aws/config) to use instead of the default profile')
+        .boolean('force')
+        .describe('force', 'Delete all credential and cache files before authenticating')
+        .boolean('skip-expiry-check')
+        .describe('skip-expiry-check', 'Do not check expiry of existing credentials, always reauthenticate')
         .usage('Usage: $0 [...options]')
         .strict()
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -203,6 +214,8 @@ export const main = async (args: Array<string>): Promise<void> => {
     await run({
         verbose: parsedArgs.verbose || false,
         profile: parsedArgs.profile || undefined,
+        skipExpiryCheck: !!parsedArgs.skipExpiryCheck,
+        force: !!parsedArgs.force,
         credentialsProcessOutput: positionalArgs[0] === 'credentials-process',
     });
 };

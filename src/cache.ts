@@ -100,3 +100,36 @@ export const findLatestCacheFile = async (): Promise<SSOCacheToken | undefined> 
     const filenames = await listCacheFiles(cacheDirPath);
     return latestCacheFile(cacheDirPath, filenames);
 };
+
+export const deleteCliCache = async (): Promise<void> => {
+    await fsPromises.rm(path.join(os.homedir(), '.aws/cli/cache/'), {
+        recursive: true,
+        force: true,
+    });
+};
+
+export const deleteSsoCache = async (): Promise<void> => {
+    await fsPromises.rm(path.join(os.homedir(), '.aws/sso/cache/'), {
+        recursive: true,
+        force: true,
+    });
+};
+
+export const deleteCredentials = async (): Promise<void> => {
+    try {
+        await fsPromises.unlink(path.join(os.homedir(), '.aws/credentials'));
+    } catch (err) {
+        /* istanbul ignore else */
+        if (err.code === 'ENOENT') {
+            // File doesn't exist, nothing to do
+        } else {
+            throw err;
+        }
+    }
+};
+
+export const deleteCredentialsAndCaches = async (): Promise<void> => {
+    await deleteCliCache();
+    await deleteSsoCache();
+    await deleteCredentials();
+};
