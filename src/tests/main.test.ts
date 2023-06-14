@@ -37,6 +37,9 @@ const mockExecCommandsFactory = (mockExecCommands: MockExecCommands): MockExec =
                 try {
                     out = mockExecCommand(cmd, options);
                 } catch (err) {
+                    if (!(err instanceof Error)) {
+                        throw err;
+                    }
                     callback(err, emptyOutput);
                     return;
                 }

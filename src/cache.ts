@@ -119,8 +119,10 @@ export const deleteCredentials = async (): Promise<void> => {
     try {
         await fsPromises.unlink(path.join(os.homedir(), '.aws/credentials'));
     } catch (err) {
+        /* istanbul ignore next */
+        const errCode = hasKey('code', err) ? err.code : undefined;
         /* istanbul ignore else */
-        if (err.code === 'ENOENT') {
+        if (errCode === 'ENOENT') {
             // File doesn't exist, nothing to do
         } else {
             throw err;

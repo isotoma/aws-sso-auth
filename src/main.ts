@@ -9,6 +9,7 @@ import { getVersionNumber } from './getVersion';
 import { findLatestCacheFile, SSOCacheToken, deleteCredentialsAndCaches } from './cache';
 import { findSSOConfigFromAWSConfig, SSOConfigOptions } from './ssoConfig';
 import { parseRoleCredentialsOutput, writeCredentialsFile, writeCredentialsCacheFile, readCredentialsCacheFile, printCredentials } from './roleCredentials';
+import { hasKey } from './utils';
 
 const execPromise = util.promisify(exec);
 
@@ -55,6 +56,7 @@ const runGetRoleCredentialsCmdOutput = async (context: GetRoleContext): Promise<
         return getRoleCredentialsCmdOutput.stdout;
     } catch (err) {
         if (
+            hasKey('stderr', err) &&
             err.stderr &&
             typeof err.stderr === 'string' &&
             err.stderr.trim() === 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid'
