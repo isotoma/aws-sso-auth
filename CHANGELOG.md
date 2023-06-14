@@ -1,6 +1,12 @@
 ### Changelog
 
-#### [v2.6.0](https://github.com/isotoma/aws-sso-auth/compare/2.5.0...v2.6.0)
+#### [v2.7.0](https://github.com/isotoma/aws-sso-auth/compare/2.6.0...v2.7.0)
+
+- Use node 18 [`#57`](https://github.com/isotoma/aws-sso-auth/pull/57)
+
+#### [2.6.0](https://github.com/isotoma/aws-sso-auth/compare/2.5.0...2.6.0)
+
+> 14 June 2023
 
 - Passing --verbose also prints the version [`#56`](https://github.com/isotoma/aws-sso-auth/pull/56)
 
