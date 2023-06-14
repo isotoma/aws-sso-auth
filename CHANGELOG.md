@@ -1,6 +1,12 @@
 ### Changelog
 
-#### [v2.5.0](https://github.com/isotoma/aws-sso-auth/compare/2.4.1...v2.5.0)
+#### [v2.6.0](https://github.com/isotoma/aws-sso-auth/compare/2.5.0...v2.6.0)
+
+- Passing --verbose also prints the version [`#56`](https://github.com/isotoma/aws-sso-auth/pull/56)
+
+#### [2.5.0](https://github.com/isotoma/aws-sso-auth/compare/2.4.1...2.5.0)
+
+> 16 March 2023
 
 - Add --force and --skip-expiry-check options [`#51`](https://github.com/isotoma/aws-sso-auth/pull/51)
 - SonarCloud: ignore duplication in tests [`#53`](https://github.com/isotoma/aws-sso-auth/pull/53)
