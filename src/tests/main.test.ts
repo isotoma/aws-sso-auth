@@ -91,6 +91,7 @@ describe('run', () => {
         mockfs({
             [path.join(os.homedir(), '.aws/')]: {},
             [path.join(os.homedir(), '.aws/sso/cache/')]: {},
+            [path.join(__dirname, '..', '..', 'package.json')]: fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'),
         });
 
         const execMock = (exec as unknown) as jest.Mock<void>;
@@ -596,6 +597,7 @@ describe('main', () => {
         mockfs({
             [path.join(os.homedir(), '.aws/')]: {},
             [path.join(os.homedir(), '.aws/sso/cache/')]: {},
+            [path.join(__dirname, '..', '..', 'package.json')]: fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'),
         });
 
         const execMock = (exec as unknown) as jest.Mock<void>;
