@@ -1,4 +1,4 @@
-export const hasKey = <K extends string>(key: K, obj: unknown): obj is { [_ in K]: Record<string, unknown> } => {
+export const hasKey = <K extends string>(key: K, obj: unknown): obj is { [_ in K]: unknown } => {
     return typeof obj === 'object' && !!obj && key in obj;
 };
 
