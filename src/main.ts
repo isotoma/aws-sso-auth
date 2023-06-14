@@ -90,6 +90,8 @@ export const run = async (props: RunProps): Promise<void> => {
 
     log('Starting');
 
+    log(`Application version: ${getVersionNumber()}`);
+
     log('Checking CLI version...');
 
     if (!(await checkCLIVersion())) {
