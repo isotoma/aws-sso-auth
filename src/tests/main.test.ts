@@ -101,7 +101,7 @@ describe('run', () => {
             [path.join(__dirname, '..', '..', 'package.json')]: fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'),
         });
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockClear();
     });
 
@@ -113,7 +113,7 @@ describe('run', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         await run({
@@ -148,7 +148,7 @@ describe('run', () => {
         const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "3020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
         fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         await run({
@@ -176,7 +176,7 @@ describe('run', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
@@ -215,7 +215,7 @@ describe('run', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', 'sso_start_url = mystarturl', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
@@ -256,7 +256,7 @@ describe('run', () => {
         const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "1020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
         fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         await run({
@@ -287,7 +287,7 @@ describe('run', () => {
         const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "3020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
         fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         await run({
@@ -325,7 +325,7 @@ describe('run', () => {
 
         let didThrowError = false;
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
@@ -382,7 +382,7 @@ describe('run', () => {
 
         let awsSsoLoginCallCount = 0;
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
@@ -417,7 +417,7 @@ describe('run', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
@@ -445,7 +445,7 @@ describe('run', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
@@ -471,7 +471,7 @@ describe('run', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         const consoleLogSpy = jest.spyOn(global.console, 'log').mockImplementation();
@@ -503,7 +503,7 @@ describe('run', () => {
         ].join('');
         fs.writeFileSync(path.join(os.homedir(), '.aws-sso-auth-credentials.json'), cacheFileContent, 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         const consoleLogSpy = jest.spyOn(global.console, 'log').mockImplementation();
@@ -527,7 +527,7 @@ describe('run', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         const consoleErrorSpy = jest.spyOn(global.console, 'error').mockImplementation();
@@ -550,7 +550,7 @@ describe('run', () => {
         const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "3020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
         fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         await run({
@@ -578,7 +578,7 @@ describe('run', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
@@ -620,7 +620,7 @@ describe('run', () => {
         ];
         fs.writeFileSync(path.join(os.homedir(), '.aws/credentials'), credentialsLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         await run({
@@ -651,7 +651,7 @@ describe('run', () => {
         const ssoCacheLines = ['{', '  "accessToken": "my_access_token",', '  "expiresAt": "3020-01-01T12:30:00Z",', '  "region": "eu-west-1"', '}'];
         fs.writeFileSync(path.join(os.homedir(), '.aws/sso/cache/valid.json'), ssoCacheLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         await run({
@@ -684,7 +684,7 @@ describe('main', () => {
             [path.join(__dirname, '..', '..', 'package.json')]: fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'),
         });
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockClear();
     });
 
@@ -696,7 +696,7 @@ describe('main', () => {
         const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
-        const execMock = (exec as unknown) as jest.Mock<void>;
+        const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
         await main([]);
