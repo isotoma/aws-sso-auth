@@ -1,6 +1,17 @@
 ### Changelog
 
-#### [v2.8.0](https://github.com/isotoma/aws-sso-auth/compare/2.7.0...v2.8.0)
+#### [2.8.1](https://github.com/isotoma/aws-sso-auth/compare/2.8.0...2.8.1)
+
+- Remove json-schema [`#65`](https://github.com/isotoma/aws-sso-auth/pull/65)
+- Update jest dependencies [`#64`](https://github.com/isotoma/aws-sso-auth/pull/64)
+- Update linting dependencies [`#63`](https://github.com/isotoma/aws-sso-auth/pull/63)
+- Update production dependencies [`#62`](https://github.com/isotoma/aws-sso-auth/pull/62)
+- Update non-linting, non-jest dev dependencies [`#61`](https://github.com/isotoma/aws-sso-auth/pull/61)
+- Package updates [`#60`](https://github.com/isotoma/aws-sso-auth/pull/60)
+
+#### [2.8.0](https://github.com/isotoma/aws-sso-auth/compare/2.7.0...2.8.0)
+
+> 15 August 2023
 
 - Issue 58: credentials expiry warning and workaround [`#59`](https://github.com/isotoma/aws-sso-auth/pull/59)
 
