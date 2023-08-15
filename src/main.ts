@@ -215,14 +215,14 @@ export const main = async (args: Array<string>): Promise<void> => {
         .boolean('skip-expiry-check')
         .describe('skip-expiry-check', 'Do not check expiry of existing credentials, always reauthenticate')
         .usage('Usage: $0 [...options]')
-        .strict()
+        .strictOptions()
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .fail((msg: string, err: Error | null, yargsObj: yargs.Argv): void => {
             /* istanbul ignore next */
             if (err) throw err;
             throw new ArgumentsError(msg);
         })
-        .parse(args);
+        .parseSync(args);
 
     const positionalArgs: Array<string> = parsedArgs._.map((arg: string | number): string => `${arg}`);
 
