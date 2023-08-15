@@ -28,6 +28,10 @@ const emptyOutput: CmdOutput = {
     stderr: '',
 };
 
+const minutesInTheFuture = (minutes: number): Date => {
+    return new Date(new Date().getTime() + minutes * 60 * 1000);
+};
+
 const mockExecCommandsFactory = (mockExecCommands: MockExecCommands): MockExec => {
     return (cmd: string, options: unknown, callback: (err: Error | null, out: CmdOutput) => void): void => {
         for (const key in mockExecCommands) {
@@ -55,7 +59,7 @@ const defaultExecMocks = {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     'aws sso login': (cmd: string, options: unknown): void => {
         const content = {
-            expiresAt: new Date(new Date().getTime() + 60 * 1000),
+            expiresAt: minutesInTheFuture(20),
             region: 'myregion',
             accessToken: 'myaccesstoken',
         };
@@ -166,6 +170,83 @@ describe('run', () => {
             '',
         ];
         expect(foundCredentialsContent).toEqual(expectedLines.join('\n'));
+    });
+
+    test('run, credentials expiry within window', async () => {
+        const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(
+            mockExecCommandsFactory({
+                ...defaultExecMocks,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                'aws sso login': (cmd: string, options: unknown): void => {
+                    const content = {
+                        // Expires in 5 minutes
+                        expiresAt: minutesInTheFuture(5),
+                        region: 'myregion',
+                        accessToken: 'myaccesstoken',
+                    };
+                    const cacheFilePath = path.join(os.homedir(), '.aws/sso/cache/example.json');
+                    fs.mkdirSync(path.dirname(cacheFilePath), {
+                        recursive: true,
+                    });
+                    fs.writeFileSync(cacheFilePath, JSON.stringify(content), 'utf8');
+                },
+            }),
+        );
+
+        const consoleErrorSpy = jest.spyOn(global.console, 'error').mockImplementation();
+
+        await run({
+            verbose: false,
+            profile: undefined,
+            credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: false,
+        });
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith('WARN:', 'This may cause issues when using these credentials with the JS SDK, in particular the AWS CDK.');
+        expect(consoleErrorSpy).toHaveBeenCalledWith('WARN:', `Workaround: go to your AWS SSO login URL, click 'Sign out', then re-run this command with --force`);
+    });
+
+    test('run, credentials expiry within window, useful error message', async () => {
+        const configLines = ['[default]', 'sso_role_name = myssorolename', 'sso_account_id = myssoaccountid', 'sso_start_url = mystarturl', ''];
+        fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
+
+        const execMock = (exec as unknown) as jest.Mock<void>;
+        execMock.mockImplementation(
+            mockExecCommandsFactory({
+                ...defaultExecMocks,
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                'aws sso login': (cmd: string, options: unknown): void => {
+                    const content = {
+                        // Expires in 5 minutes
+                        expiresAt: minutesInTheFuture(5),
+                        region: 'myregion',
+                        accessToken: 'myaccesstoken',
+                    };
+                    const cacheFilePath = path.join(os.homedir(), '.aws/sso/cache/example.json');
+                    fs.mkdirSync(path.dirname(cacheFilePath), {
+                        recursive: true,
+                    });
+                    fs.writeFileSync(cacheFilePath, JSON.stringify(content), 'utf8');
+                },
+            }),
+        );
+
+        const consoleErrorSpy = jest.spyOn(global.console, 'error').mockImplementation();
+
+        await run({
+            verbose: false,
+            profile: undefined,
+            credentialsProcessOutput: false,
+            force: false,
+            skipExpiryCheck: false,
+        });
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith('WARN:', `Workaround: go to mystarturl, click 'Sign out', then re-run this command with --force`);
     });
 
     test('run, handles expired latest cache file', async () => {

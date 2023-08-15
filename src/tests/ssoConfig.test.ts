@@ -83,4 +83,16 @@ describe('findSSOConfigFromAWSConfig', () => {
 
         await expect(findSSOConfigFromAWSConfig(undefined)).rejects.toThrow(MissingSSOConfigError);
     });
+
+    test('sso_start_url is set', async () => {
+        mockfs({
+            [path.join(os.homedir(), '.aws/config')]: ['[default]', 'sso_role_name = my_role_name', 'sso_account_id = 123456789012', 'sso_start_url = my_start_url'].join('\n'),
+        });
+
+        expect(await findSSOConfigFromAWSConfig(undefined)).toEqual({
+            roleName: 'my_role_name',
+            accountId: '123456789012',
+            startUrl: 'my_start_url',
+        });
+    });
 });

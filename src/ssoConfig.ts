@@ -12,6 +12,7 @@ const fsPromises = fs.promises;
 export interface SSOConfigOptions {
     readonly roleName: string;
     readonly accountId: string;
+    readonly startUrl?: string;
 }
 
 export const findSSOConfigFromAWSConfig = async (profile: string | undefined): Promise<SSOConfigOptions> => {
@@ -46,11 +47,20 @@ export const findSSOConfigFromAWSConfig = async (profile: string | undefined): P
     }
     const accountId = section['sso_account_id'];
     if (typeof accountId !== 'string') {
-        throw new MissingSSOConfigError(`Bad type for sso_role_name from [${sectionName}] section in ${filepath}`);
+        throw new MissingSSOConfigError(`Bad type for sso_account_id from [${sectionName}] section in ${filepath}`);
+    }
+
+    let startUrl: string | undefined = undefined;
+    if (hasKey('sso_start_url', section)) {
+        const rawStartUrl = section['sso_start_url'];
+        if (typeof rawStartUrl === 'string') {
+            startUrl = rawStartUrl;
+        }
     }
 
     return {
         roleName,
         accountId,
+        startUrl,
     };
 };

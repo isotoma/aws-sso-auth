@@ -13,6 +13,8 @@ import { hasKey } from './utils';
 
 const execPromise = util.promisify(exec);
 
+const jsSdkExpiryWindowSeconds = 15 * 60;
+
 interface RunProps {
     verbose: boolean;
     profile: string | undefined;
@@ -23,15 +25,23 @@ interface RunProps {
 
 type LogFn = (msg: string) => void;
 
-const getLogger = (verbose: boolean): LogFn => {
-    return (msg: string): void => {
+type Logger = {
+    info: LogFn;
+    warn: LogFn;
+};
+
+const getLogger = (verbose: boolean): Logger => ({
+    info: (msg: string): void => {
         if (verbose) {
             console.error('INFO:', msg);
         }
-    };
-};
+    },
+    warn: (msg: string): void => {
+        console.error('WARN:', msg);
+    },
+});
 
-let log: LogFn;
+let log: Logger;
 
 interface GetRoleContext {
     ssoConfig: SSOConfigOptions;
@@ -74,7 +84,7 @@ interface SSOLoginContext {
 }
 
 const runSsoLogin = async (context: SSOLoginContext): Promise<void> => {
-    log('No valid SSO cache file found, running login...');
+    log.info('No valid SSO cache file found, running login...');
     await execPromise('aws sso login', {
         env: {
             ...process.env,
@@ -83,42 +93,42 @@ const runSsoLogin = async (context: SSOLoginContext): Promise<void> => {
     });
     context.haveRunSsoLogin = true;
 
-    log('Login completed, trying again to retrieve credentials from SSO cache');
+    log.info('Login completed, trying again to retrieve credentials from SSO cache');
     context.latestCacheFile = await findLatestCacheFile();
 };
 
 export const run = async (props: RunProps): Promise<void> => {
     log = getLogger(props.verbose);
 
-    log('Starting');
+    log.info('Starting');
 
-    log(`Application version: ${getVersionNumber()}`);
+    log.info(`Application version: ${getVersionNumber()}`);
 
-    log('Checking CLI version...');
+    log.info('Checking CLI version...');
 
     if (!(await checkCLIVersion())) {
         throw new BadAWSCLIVersionError('Need CLI version 2, see https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html, run `aws --version` to inspect version');
     }
 
-    log('CLI version OK');
+    log.info('CLI version OK');
 
     if (props.force) {
-        log('Deleting credentials, and SSO and CLI caches');
+        log.info('Deleting credentials, and SSO and CLI caches');
         await deleteCredentialsAndCaches();
     }
 
     if (props.credentialsProcessOutput) {
-        log('Attempting to retrieve credentials from role credentials cache file');
+        log.info('Attempting to retrieve credentials from role credentials cache file');
         const creds = await readCredentialsCacheFile();
         if (typeof creds !== 'undefined') {
-            log('Found credentials in role credentials cache file, outputting');
+            log.info('Found credentials in role credentials cache file, outputting');
             printCredentials(creds);
             return;
         }
-        log('No valid credentials found in role credentials cache file, continuing');
+        log.info('No valid credentials found in role credentials cache file, continuing');
     }
 
-    log('Locating latest SSO cache file...');
+    log.info('Locating latest SSO cache file...');
 
     const ssoLoginContext: SSOLoginContext = {
         haveRunSsoLogin: false,
@@ -130,11 +140,11 @@ export const run = async (props: RunProps): Promise<void> => {
         await runSsoLogin(ssoLoginContext);
     }
 
-    log('Retrieving SSO configuration from AWS config file...');
+    log.info('Retrieving SSO configuration from AWS config file...');
     const ssoConfig = await findSSOConfigFromAWSConfig(props.profile);
-    log('Got SSO configuration');
+    log.info('Got SSO configuration');
 
-    log('Using SSO credentials to get role credentials...');
+    log.info('Using SSO credentials to get role credentials...');
 
     let roleCredentialsOutput: string;
     const getRoleContext = {
@@ -148,9 +158,9 @@ export const run = async (props: RunProps): Promise<void> => {
             if (ssoLoginContext.haveRunSsoLogin) {
                 throw err;
             } else {
-                log('Expiry date appears to be deceptive, running login...');
+                log.info('Expiry date appears to be deceptive, running login...');
                 await runSsoLogin(ssoLoginContext);
-                log('Again using SSO credentials to get role credentials...');
+                log.info('Again using SSO credentials to get role credentials...');
                 roleCredentialsOutput = await runGetRoleCredentialsCmdOutput(getRoleContext);
             }
         } else {
@@ -158,25 +168,40 @@ export const run = async (props: RunProps): Promise<void> => {
         }
     }
 
-    log('Parsing role credentials...');
+    log.info('Parsing role credentials...');
     const roleCredentials = parseRoleCredentialsOutput(roleCredentialsOutput);
-    log('Got role credentials');
+    log.info('Got role credentials');
 
     if (props.credentialsProcessOutput) {
-        log('Writing role credentials to cache in home directory...');
+        log.info('Writing role credentials to cache in home directory...');
         await writeCredentialsCacheFile(roleCredentials);
-        log('Wrote role credentials');
+        log.info('Wrote role credentials');
 
-        log('Printing role credentials for credentials_process');
+        log.info('Printing role credentials for credentials_process');
         printCredentials(roleCredentials);
-        log('Printed role credentials');
+        log.info('Printed role credentials');
     } else {
-        log('Writing role credentials to AWS credentials file...');
+        log.info('Writing role credentials to AWS credentials file...');
         await writeCredentialsFile(roleCredentials, props.profile);
-        log('Wrote role credentials');
+        log.info('Wrote role credentials');
     }
 
-    log('Done, exiting cleanly');
+    /* istanbul ignore else */
+    if (ssoLoginContext.latestCacheFile) {
+        const ssoExpiryDate = ssoLoginContext.latestCacheFile.expiresAt;
+        if (ssoExpiryDate) {
+            const credentialsExpireInSeconds = (ssoExpiryDate.getTime() - new Date().getTime()) / 1000;
+            log.info(`Credentials from SSO expire in ${credentialsExpireInSeconds} seconds`);
+
+            if (credentialsExpireInSeconds < jsSdkExpiryWindowSeconds) {
+                log.warn(`Credentials from SSO expire in ${credentialsExpireInSeconds} seconds, which is within the AWS JS SDK's expiry window of ${jsSdkExpiryWindowSeconds} seconds.`);
+                log.warn('This may cause issues when using these credentials with the JS SDK, in particular the AWS CDK.');
+                log.warn(`Workaround: go to ${ssoConfig.startUrl ?? 'your AWS SSO login URL'}, click 'Sign out', then re-run this command with --force`);
+            }
+        }
+    }
+
+    log.info('Done, exiting cleanly');
 };
 
 export const main = async (args: Array<string>): Promise<void> => {
