@@ -3,9 +3,10 @@ jest.mock('child_process');
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
+import events from 'events';
 
 import mockfs from 'mock-fs';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 
 import { run, main } from '../main';
 import { BadAWSCLIVersionError, NoCachedCredentialsError, ArgumentsError, MisbehavingExpiryDateError } from '../errors';
@@ -51,24 +52,11 @@ const mockExecCommandsFactory = (mockExecCommands: MockExecCommands): MockExec =
                 return;
             }
         }
-        callback(new Error('Unknown command'), emptyOutput);
+        callback(new Error(`Unknown command: ${cmd}`), emptyOutput);
     };
 };
 
 const defaultExecMocks = {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    'aws sso login': (cmd: string, options: unknown): void => {
-        const content = {
-            expiresAt: minutesInTheFuture(20),
-            region: 'myregion',
-            accessToken: 'myaccesstoken',
-        };
-        const cacheFilePath = path.join(os.homedir(), '.aws/sso/cache/example.json');
-        fs.mkdirSync(path.dirname(cacheFilePath), {
-            recursive: true,
-        });
-        fs.writeFileSync(cacheFilePath, JSON.stringify(content), 'utf8');
-    },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     'aws sso get-role-credentials': (cmd: string, options: unknown): CmdOutput => {
         const content = {
@@ -93,6 +81,86 @@ const defaultExecMocks = {
     },
 };
 
+class SpawnOutput extends events.EventEmitter {
+    stdout: string;
+    stderr: string;
+
+    constructor() {
+        super();
+        this.stdout = '';
+        this.stderr = '';
+    }
+
+    setStdout(str: string) {
+        this.stdout = str;
+    }
+    setStderr(str: string) {
+        this.stderr = str;
+    }
+}
+
+type MockSpawnCommand = (cmd: string, args: Array<string>, options: unknown) => CmdOutput;
+
+interface MockSpawnCommands {
+    [key: string]: MockSpawnCommand;
+}
+
+type MockSpawn = (cmd: string, args: Array<string>, options: unknown) => void;
+
+const defaultSpawnMocks = {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    'aws sso login': (cmd: string, args: Array<string>, options: unknown): CmdOutput => {
+        const content = {
+            expiresAt: minutesInTheFuture(20),
+            region: 'myregion',
+            accessToken: 'myaccesstoken',
+        };
+        const cacheFilePath = path.join(os.homedir(), '.aws/sso/cache/example.json');
+        fs.mkdirSync(path.dirname(cacheFilePath), {
+            recursive: true,
+        });
+        fs.writeFileSync(cacheFilePath, JSON.stringify(content), 'utf8');
+        return emptyOutput;
+    },
+};
+
+const mockSpawnCommandsFactory = (mockSpawnCommands: MockSpawnCommands): MockSpawn => {
+    return (cmd: string, args: Array<string>, options: unknown): SpawnOutput => {
+        const fullCmd = `${cmd} ${args.join(' ')}`.trim();
+        for (const key in mockSpawnCommands) {
+            if (fullCmd.startsWith(key)) {
+                const mockSpawnCommand: MockSpawnCommand = mockSpawnCommands[key];
+
+                const spawnOut = new SpawnOutput();
+
+                let out;
+                try {
+                    out = mockSpawnCommand(cmd, args, options);
+                } catch (err) {
+                    if (!(err instanceof Error)) {
+                        throw err;
+                    }
+                    spawnOut.setStderr('Command errored');
+                    setTimeout(() => {
+                        spawnOut.emit('close', 1);
+                    }, 100);
+                    return spawnOut;
+                }
+
+                spawnOut.setStdout(out.stdout);
+                spawnOut.setStderr(out.stderr);
+                setTimeout(() => {
+                    spawnOut.emit('close', 0);
+                }, 100);
+
+                return spawnOut;
+            }
+        }
+
+        throw Error(`Unknown command: ${fullCmd}`);
+    };
+};
+
 describe('run', () => {
     beforeEach(() => {
         mockfs({
@@ -103,6 +171,9 @@ describe('run', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockClear();
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockClear();
     });
 
     afterEach(() => {
@@ -115,6 +186,9 @@ describe('run', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
 
         await run({
             verbose: false,
@@ -151,6 +225,9 @@ describe('run', () => {
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
+
         await run({
             verbose: false,
             profile: undefined,
@@ -177,11 +254,14 @@ describe('run', () => {
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
         const execMock = exec as unknown as jest.Mock<void>;
-        execMock.mockImplementation(
-            mockExecCommandsFactory({
-                ...defaultExecMocks,
+        execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(
+            mockSpawnCommandsFactory({
+                ...defaultSpawnMocks,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                'aws sso login': (cmd: string, options: unknown): void => {
+                'aws sso login': (cmd: string, options: unknown): CmdOutput => {
                     const content = {
                         // Expires in 5 minutes
                         expiresAt: minutesInTheFuture(5),
@@ -193,6 +273,7 @@ describe('run', () => {
                         recursive: true,
                     });
                     fs.writeFileSync(cacheFilePath, JSON.stringify(content), 'utf8');
+                    return emptyOutput;
                 },
             }),
         );
@@ -216,11 +297,14 @@ describe('run', () => {
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
         const execMock = exec as unknown as jest.Mock<void>;
-        execMock.mockImplementation(
-            mockExecCommandsFactory({
-                ...defaultExecMocks,
+        execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(
+            mockSpawnCommandsFactory({
+                ...defaultSpawnMocks,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                'aws sso login': (cmd: string, options: unknown): void => {
+                'aws sso login': (cmd: string, options: unknown): CmdOutput => {
                     const content = {
                         // Expires in 5 minutes
                         expiresAt: minutesInTheFuture(5),
@@ -232,6 +316,7 @@ describe('run', () => {
                         recursive: true,
                     });
                     fs.writeFileSync(cacheFilePath, JSON.stringify(content), 'utf8');
+                    return emptyOutput;
                 },
             }),
         );
@@ -258,6 +343,9 @@ describe('run', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
 
         await run({
             verbose: false,
@@ -289,6 +377,9 @@ describe('run', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
 
         await run({
             verbose: false,
@@ -354,6 +445,9 @@ describe('run', () => {
             }),
         );
 
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
+
         await run({
             verbose: false,
             profile: undefined,
@@ -386,16 +480,23 @@ describe('run', () => {
         execMock.mockImplementation(
             mockExecCommandsFactory({
                 ...defaultExecMocks,
-                'aws sso login': (cmd: string, options: unknown): void => {
-                    awsSsoLoginCallCount++;
-                    const fn = defaultExecMocks['aws sso login'];
-                    fn(cmd, options);
-                },
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 'aws sso get-role-credentials': (cmd: string, options: unknown): CmdOutput => {
                     throw {
                         stderr: 'An error occurred (UnauthorizedException) when calling the GetRoleCredentials operation: Session token not found or invalid',
                     };
+                },
+            }),
+        );
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(
+            mockSpawnCommandsFactory({
+                ...defaultSpawnMocks,
+                'aws sso login': (cmd: string, args: Array<string>, options: unknown): CmdOutput => {
+                    awsSsoLoginCallCount++;
+                    const fn = defaultSpawnMocks['aws sso login'];
+                    return fn(cmd, args, options);
                 },
             }),
         );
@@ -430,6 +531,9 @@ describe('run', () => {
             }),
         );
 
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
+
         await expect(
             run({
                 verbose: false,
@@ -446,12 +550,15 @@ describe('run', () => {
         fs.writeFileSync(path.join(os.homedir(), '.aws/config'), configLines.join('\n'), 'utf8');
 
         const execMock = exec as unknown as jest.Mock<void>;
-        execMock.mockImplementation(
-            mockExecCommandsFactory({
-                ...defaultExecMocks,
+        execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(
+            mockSpawnCommandsFactory({
+                ...defaultSpawnMocks,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                'aws sso login': (cmd: string, options: unknown): void => {
-                    // do nothing
+                'aws sso login': (cmd: string, options: unknown): CmdOutput => {
+                    return emptyOutput;
                 },
             }),
         );
@@ -473,6 +580,9 @@ describe('run', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
 
         const consoleLogSpy = jest.spyOn(global.console, 'log').mockImplementation();
 
@@ -506,6 +616,9 @@ describe('run', () => {
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
+
         const consoleLogSpy = jest.spyOn(global.console, 'log').mockImplementation();
 
         await run({
@@ -530,6 +643,9 @@ describe('run', () => {
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
+
         const consoleErrorSpy = jest.spyOn(global.console, 'error').mockImplementation();
 
         await run({
@@ -552,6 +668,9 @@ describe('run', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
 
         await run({
             verbose: false,
@@ -623,6 +742,9 @@ describe('run', () => {
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
 
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
+
         await run({
             verbose: false,
             profile: undefined,
@@ -653,6 +775,9 @@ describe('run', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
 
         await run({
             verbose: false,
@@ -686,6 +811,9 @@ describe('main', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockClear();
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockClear();
     });
 
     afterEach(() => {
@@ -698,6 +826,9 @@ describe('main', () => {
 
         const execMock = exec as unknown as jest.Mock<void>;
         execMock.mockImplementation(mockExecCommandsFactory(defaultExecMocks));
+
+        const spawnMock = spawn as unknown as jest.Mock<void>;
+        spawnMock.mockImplementation(mockSpawnCommandsFactory(defaultSpawnMocks));
 
         await main([]);
 
