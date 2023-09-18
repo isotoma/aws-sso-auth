@@ -1,5 +1,5 @@
 import util from 'util';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 
 import yargs from 'yargs';
 
@@ -85,12 +85,25 @@ interface SSOLoginContext {
 
 const runSsoLogin = async (context: SSOLoginContext): Promise<void> => {
     log.info('No valid SSO cache file found, running login...');
-    await execPromise('aws sso login', {
+    const child = spawn('aws', ['sso', 'login'], {
         env: {
             ...process.env,
             AWS_PROFILE: context.awsProfile || 'default',
         },
+        stdio: 'inherit',
     });
+
+    await new Promise<void>((res, rej) => {
+        child.on('close', (code: number, signal: string) => {
+            /* istanbul ignore else */
+            if (code === 0) {
+                res();
+            } else {
+                rej(`Command failed with code ${code}, signal: ${signal}`);
+            }
+        });
+    });
+
     context.haveRunSsoLogin = true;
 
     log.info('Login completed, trying again to retrieve credentials from SSO cache');
