@@ -1,6 +1,12 @@
 ### Changelog
 
+#### [2.9.0](https://github.com/isotoma/aws-sso-auth/compare/2.8.1...2.9.0)
+
+- Display confirmation code [`#67`](https://github.com/isotoma/aws-sso-auth/pull/67)
+
 #### [2.8.1](https://github.com/isotoma/aws-sso-auth/compare/2.8.0...2.8.1)
+
+> 15 August 2023
 
 - Remove json-schema [`#65`](https://github.com/isotoma/aws-sso-auth/pull/65)
 - Update jest dependencies [`#64`](https://github.com/isotoma/aws-sso-auth/pull/64)
